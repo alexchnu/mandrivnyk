@@ -31,8 +31,8 @@ class Settings(BaseSettings):
 
     # Recommendation defaults (chosen in experiment E3)
     model_dir: Path = _PACKAGE_DIR / "ranking" / "artifacts"
-    distance_weight: float = 0.33
-    diversity_lambda: float = 0.5
+    distance_weight: float = 0.15
+    diversity_lambda: float = 0.25
     pool_size: int = 100
     page_size: int = 12
     max_radius_km: float = 10.0
