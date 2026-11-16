@@ -15,7 +15,9 @@ _POSTGIS_TABLES = {"spatial_ref_sys", "geography_columns", "geometry_columns", "
 
 
 def include_object(obj, name, type_, reflected, compare_to):
-    if type_ == "table" and (name in _POSTGIS_TABLES or getattr(obj, "schema", None) in ("tiger", "topology")):
+    if type_ == "table" and (
+        name in _POSTGIS_TABLES or getattr(obj, "schema", None) in ("tiger", "topology")
+    ):
         return False
     return alembic_helpers.include_object(obj, name, type_, reflected, compare_to)
 

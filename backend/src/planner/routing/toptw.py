@@ -247,3 +247,42 @@ def ortools_plan(
     plan = Plan(days)
     plan.skipped = sorted(set(real) - set(plan.visited))
     return plan
+
+
+def simulate_day(
+    order: list[int],
+    stops: list[Stop],
+    travel: np.ndarray,
+    day: int,
+    day_start: int,
+    day_end: int,
+    depot: int | None = None,
+) -> list[tuple[Visit, str | None]]:
+    """Follow a fixed order even when it is infeasible and report what goes wrong.
+
+    Unlike :func:`schedule_day` this never gives up: a stop that is closed on that
+    day gets the issue ``"closed"``, a stop reached after closing time or after
+    the end of the day gets ``"late"``; the walk continues regardless, so the
+    user sees the consequences of their own order.
+    """
+    out: list[tuple[Visit, str | None]] = []
+    clock, prev = day_start, depot
+    for i in order:
+        arrive = clock + (int(round(travel[prev, i])) if prev is not None else 0)
+        windows = stops[i].windows[day]
+        issue: str | None = None
+        start = arrive
+        if windows == []:
+            issue = "closed"
+        elif windows is not None:
+            fitting = [max(arrive, a) for a, b in windows if max(arrive, a) + stops[i].visit_min <= b]
+            if fitting:
+                start = fitting[0]
+            else:
+                issue = "late"
+        leave = start + stops[i].visit_min
+        if issue is None and leave > day_end:
+            issue = "late"
+        out.append((Visit(i, arrive, start, leave), issue))
+        clock, prev = leave, i
+    return out

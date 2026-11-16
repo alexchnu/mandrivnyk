@@ -1,0 +1,49 @@
+  city             method       n   pos  roc_auc  pr_auc  r_precision
+pooled             manual 56411.0 206.0    0.930   0.053        0.136
+pooled             n_tags 56411.0 206.0    0.878   0.086        0.194
+pooled          sitelinks 56411.0 206.0    0.968   0.130        0.184
+pooled          pageviews 56411.0 206.0    0.967   0.129        0.194
+pooled         logreg:osm 56411.0 206.0    0.956   0.143        0.218
+pooled           lgbm:osm 56411.0 206.0    0.956   0.221        0.257
+pooled lgbm:osm+sitelinks 56411.0 206.0    0.971   0.334        0.369
+pooled    logreg:osm+wiki 56411.0 206.0    0.972   0.252        0.311
+pooled      lgbm:osm+wiki 56411.0 206.0    0.973   0.352        0.379
+ macro           lgbm:osm     NaN   NaN    0.952   0.234        0.257
+ macro lgbm:osm+sitelinks     NaN   NaN    0.971   0.389        0.394
+ macro      lgbm:osm+wiki     NaN   NaN    0.973   0.404        0.424
+ macro         logreg:osm     NaN   NaN    0.955   0.223        0.260
+ macro    logreg:osm+wiki     NaN   NaN    0.971   0.300        0.322
+ macro             manual     NaN   NaN    0.920   0.081        0.154
+ macro             n_tags     NaN   NaN    0.864   0.133        0.242
+ macro          pageviews     NaN   NaN    0.967   0.206        0.243
+ macro          sitelinks     NaN   NaN    0.964   0.205        0.268
+method     lgbm:osm  lgbm:osm+wiki  manual
+city                                      
+budapest      0.954          0.968   0.911
+delhi         0.963          0.984   0.917
+edinburgh     0.898          0.963   0.905
+glasgow       0.953          0.978   0.906
+macro         0.952          0.973   0.920
+melbourne     0.863          0.861   0.835
+osaka         0.970          0.969   0.924
+perth         0.953          0.956   0.911
+pooled        0.956          0.973   0.930
+toronto       0.942          0.977   0.911
+vienna        0.979          0.992   0.979
+            method    tn  fp  fn  tp  precision  recall    f1
+            manual 55681 524 142  64      0.109   0.311 0.161
+          lgbm:osm 56000 205 149  57      0.218   0.277 0.244
+lgbm:osm+sitelinks 56039 166 128  78      0.320   0.379 0.347
+       feature  lgbm_gain  logreg_coef
+ has_wikipedia      0.414        1.084
+  has_wikidata      0.139        0.992
+dist_centre_km      0.090       -2.147
+  notable_500m      0.065        0.332
+    n_tags_log      0.059        0.666
+  density_300m      0.050        0.192
+     food_200m      0.027       -0.042
+ is_attraction      0.024        0.336
+   has_name_en      0.018        0.454
+   is_relation      0.016        0.293
+  cat_landmark      0.013       -0.210
+     has_image      0.011        0.062

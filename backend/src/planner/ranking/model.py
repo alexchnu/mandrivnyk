@@ -21,6 +21,7 @@ from .features import OSM_FEATURES, WIKI_FEATURES
 
 FEATURE_SETS: dict[str, list[str]] = {
     "osm": OSM_FEATURES,
+    "osm+sitelinks": [*OSM_FEATURES, "sitelinks_log"],
     "osm+wiki": [*OSM_FEATURES, *WIKI_FEATURES],
 }
 SIGHT_CATEGORIES = ("culture", "history", "landmark", "nature", "religion", "entertainment", "shopping")

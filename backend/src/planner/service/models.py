@@ -7,8 +7,19 @@ from datetime import date, datetime
 
 from geoalchemy2 import Geography
 from sqlalchemy import (
-    BigInteger, Boolean, Date, DateTime, Float, ForeignKey, Index, Integer, SmallInteger, String, Text,
-    UniqueConstraint, func,
+    BigInteger,
+    Boolean,
+    Date,
+    DateTime,
+    Float,
+    ForeignKey,
+    Index,
+    Integer,
+    SmallInteger,
+    String,
+    Text,
+    UniqueConstraint,
+    func,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -61,7 +72,9 @@ class Poi(Base):
     relevance_model: Mapped[str] = mapped_column(String(16), default="")
     summary: Mapped[dict] = mapped_column(JSONB, default=dict)  # {lang: {extract, image, url}}
     area_id: Mapped[int | None] = mapped_column(ForeignKey("area.id", ondelete="SET NULL"), index=True)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
     __table_args__ = (Index("ix_poi_geom", "geom", postgresql_using="gist"),)
 
@@ -82,7 +95,9 @@ class Trip(Base):
     __tablename__ = "trip"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
-    owner_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("app_user.id", ondelete="CASCADE"), index=True)
+    owner_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("app_user.id", ondelete="CASCADE"), index=True
+    )
     client_id: Mapped[str | None] = mapped_column(String(64), index=True)  # anonymous browser id
     title: Mapped[str] = mapped_column(String(120))
     city: Mapped[str] = mapped_column(String(160), default="")
@@ -94,11 +109,15 @@ class Trip(Base):
     day_end_min: Mapped[int] = mapped_column(SmallInteger, default=19 * 60)
     share_slug: Mapped[str | None] = mapped_column(String(16), unique=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
     owner: Mapped[User | None] = relationship(back_populates="trips")
     stops: Mapped[list[TripStop]] = relationship(
-        back_populates="trip", cascade="all, delete-orphan", order_by="(TripStop.day_index, TripStop.position)"
+        back_populates="trip",
+        cascade="all, delete-orphan",
+        order_by="(TripStop.day_index, TripStop.position)",
     )
 
 

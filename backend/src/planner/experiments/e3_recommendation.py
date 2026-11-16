@@ -26,7 +26,7 @@ from scipy.stats import wilcoxon
 
 from .. import diversify as dv
 from .. import metrics as mt
-from ..data.flickr import CITIES, load_sequences
+from ..data.flickr import CITIES, MAIN_CITIES, load_sequences
 from ..data.paths import PROCESSED_DIR, RESULTS_DIR
 from ..geo import haversine_m
 from ..ranking.features import manual_popularity
@@ -43,9 +43,12 @@ SCORERS = {
     "sitelinks": "Sitelinks",
     "pageviews": "Перегляди",
     "lgbm:osm": "Модель (OSM)",
+    "lgbm:osm+sitelinks": "Модель (OSM+sitelinks)",
     "lgbm:osm+wiki": "Модель (OSM+Wiki)",
 }
 SELECTORS = ("top_k", "round_robin", "mmr", "xquad")
+DEPLOYED = "lgbm:osm+sitelinks"  # relevance model used by the service
+PROPOSED = f"{DEPLOYED}|w=0.15|lam=0.25"  # service configuration: xQuAD, distance weight 0.15
 
 
 @dataclass(slots=True)
@@ -78,6 +81,7 @@ def load_city(key: str, scored: pd.DataFrame) -> City | None:
         "sitelinks": df["sitelinks_log"].to_numpy(float),
         "pageviews": df["pageviews_log"].to_numpy(float),
         "lgbm:osm": df["lgbm:osm"].to_numpy(float),
+        "lgbm:osm+sitelinks": df["lgbm:osm+sitelinks"].to_numpy(float),
         "lgbm:osm+wiki": df["lgbm:osm+wiki"].to_numpy(float),
     }
     return City(
@@ -233,17 +237,22 @@ def run_interactive(cities: list[City], configs: list[dict]) -> pd.DataFrame:
 def summarise(df: pd.DataFrame, metrics: list[str], unit: list[str]) -> pd.DataFrame:
     """Mean over evaluation units with bootstrap CI; also the macro average over cities."""
     rows = []
-    for cfg, grp in df.groupby("config", sort=False):
+    is_main = df["city"].isin(MAIN_CITIES)
+    extra = df[~is_main].groupby("config")[metrics].mean()
+    for cfg, grp in df[is_main].groupby("config", sort=False):
         row = {"config": cfg, "n": len(grp)}
         for m in metrics:
             mean, lo, hi = mt.bootstrap_ci(grp[m].to_numpy(), n_boot=1000)
             row[m], row[f"{m}_lo"], row[f"{m}_hi"] = mean, lo, hi
             row[f"{m}_macro"] = grp.groupby("city")[m].mean().mean()
+            if cfg in extra.index:  # out-of-distribution city, reported separately
+                row[f"{m}_extra"] = float(extra.loc[cfg, m])
         rows.append(row)
     return pd.DataFrame(rows)
 
 
 def paired_test(df: pd.DataFrame, a: str, b: str, metric: str, unit: list[str]) -> dict:
+    df = df[df["city"].isin(MAIN_CITIES)]
     wide = df[df["config"].isin([a, b])].pivot_table(index=unit, columns="config", values=metric)
     diff = (wide[a] - wide[b]).dropna()
     stat = wilcoxon(diff) if (diff != 0).any() else None
@@ -271,7 +280,8 @@ def loco_choice(grid_summary: pd.DataFrame, metric: str) -> pd.DataFrame:
     rows = []
     cities = sorted(grid_summary["city"].unique())
     for test in cities:
-        others = grid_summary[grid_summary["city"] != test].groupby("config")[metric].mean()
+        tuning = grid_summary[(grid_summary["city"] != test) & grid_summary["city"].isin(MAIN_CITIES)]
+        others = tuning.groupby("config")[metric].mean()
         best = others.idxmax()
         hit = grid_summary[(grid_summary["city"] == test) & (grid_summary["config"] == best)]
         rows.append({"city": test, "chosen": best, metric: float(hit[metric].iloc[0])})
@@ -329,23 +339,28 @@ def main() -> None:
     print(ablation[["config", "recall", "ndcg", "ild", "categories"]].round(3).to_string(index=False))
 
     # 3. Sensitivity: distance weight and diversification strength ----------
-    best_scorer = "lgbm:osm+wiki"
+    # DEPLOYED is the scorer the service can compute for any city (OSM + one batched
+    # Wikidata call); the richer "+wiki" scorer needs the monthly pageview dump.
     grid = [
-        cfg(f"w={w:.2f}|lam={lam:.2f}", best_scorer, "xquad", w_dist=w, lam=lam)
+        cfg(f"{scorer}|w={w:.2f}|lam={lam:.2f}", scorer, "xquad", w_dist=w, lam=lam)
+        for scorer in (DEPLOYED, "lgbm:osm+wiki")
         for w in (0.0, 0.15, 0.33, 0.5, 0.7)
         for lam in (0.0, 0.25, 0.5, 0.75, 1.0)
     ]
     grid += [
-        cfg(f"mmr|w=0.33|lam={lam:.2f}", best_scorer, "mmr", lam=lam) for lam in (0.3, 0.5, 0.7, 0.85, 1.0)
+        cfg(f"mmr|w=0.15|lam={lam:.2f}", DEPLOYED, "mmr", w_dist=0.15, lam=lam)
+        for lam in (0.3, 0.5, 0.7, 0.85, 1.0)
     ]
+    grid += [cfg(f"round_robin|w={w:.2f}", DEPLOYED, "round_robin", w_dist=w) for w in (0.15, 0.33)]
     grid += [
         cfg(f"manual|w={w:.2f}", "manual", "round_robin", w_dist=w) for w in (0.0, 0.15, 0.33, 0.5, 0.7, 1.0)
     ]
     sens_raw = run_explore(cities, grid)
+    sens_raw.to_parquet(PROCESSED_DIR / "e3_sensitivity.parquet", index=False)
     sens = summarise(sens_raw, explore_metrics, ["city", "trip"])
     sens.to_csv(RESULTS_DIR / "e3_sensitivity.csv", index=False)
     by_city = sens_raw.groupby(["city", "config"])[explore_metrics].mean().reset_index()
-    xq = by_city[by_city["config"].str.startswith("w=")]
+    xq = by_city[by_city["config"].str.startswith(f"{DEPLOYED}|w=")]
     chosen = loco_choice(xq, "ndcg")
     chosen.to_csv(RESULTS_DIR / "e3_loco_tuning.csv", index=False)
     print(sens[["config", "recall", "ndcg", "ild", "categories"]].round(3).to_string(index=False))
@@ -365,6 +380,19 @@ def main() -> None:
         cfg("lgbm:osm+wiki|xquad", "lgbm:osm+wiki", "xquad"),
         cfg("lgbm:osm+wiki|xquad+context", "lgbm:osm+wiki", "xquad", contextual=True),
         cfg("distance_only", "manual", "top_k", w_dist=1.0),
+        cfg("lgbm:osm+sitelinks|top_k", "lgbm:osm+sitelinks", "top_k"),
+        cfg("proposed", DEPLOYED, "xquad", w_dist=0.15, lam=0.25),
+        cfg("proposed+context", DEPLOYED, "xquad", w_dist=0.15, lam=0.25, contextual=True),
+        cfg(f"{DEPLOYED}|top_k|w=0.15", DEPLOYED, "top_k", w_dist=0.15),
+        cfg(f"{DEPLOYED}|round_robin", DEPLOYED, "round_robin"),
+        cfg("lgbm:osm+sitelinks|xquad", "lgbm:osm+sitelinks", "xquad"),
+        # how much should closeness to the current stop weigh when the next stop is suggested?
+        *[
+            cfg(f"lgbm:osm+wiki|top_k|w={w:.2f}", "lgbm:osm+wiki", "top_k", w_dist=w)
+            for w in (0.0, 0.15, 0.5, 0.7, 0.85)
+        ],
+        *[cfg(f"lgbm:osm+wiki|xquad|w={w:.2f}", "lgbm:osm+wiki", "xquad", w_dist=w) for w in (0.5, 0.7)],
+        *[cfg(f"manual|round_robin|w={w:.2f}", "manual", "round_robin", w_dist=w) for w in (0.15, 0.5, 0.7)],
     ]
     inter = run_interactive(cities, inter_cfgs)
     inter.to_parquet(PROCESSED_DIR / "e3_interactive.parquet", index=False)
@@ -377,20 +405,34 @@ def main() -> None:
     )
 
     # 5. Significance of the key comparisons ---------------------------------
+    both = pd.concat([explore, sens_raw], ignore_index=True)
+    trip, step = ["city", "trip"], ["city", "trip", "step"]
+    old = "manual|round_robin"
     tests = [
-        paired_test(explore, "lgbm:osm|round_robin", "manual|round_robin", "ndcg", ["city", "trip"]),
-        paired_test(explore, "lgbm:osm+wiki|round_robin", "manual|round_robin", "ndcg", ["city", "trip"]),
-        paired_test(explore, "lgbm:osm+wiki|xquad", "manual|round_robin", "ndcg", ["city", "trip"]),
-        paired_test(explore, "lgbm:osm+wiki|xquad", "lgbm:osm+wiki|top_k", "ild", ["city", "trip"]),
-        paired_test(explore, "lgbm:osm+wiki|xquad", "lgbm:osm+wiki|top_k", "ndcg", ["city", "trip"]),
-        paired_test(explore, "manual|round_robin", "manual|top_k", "ndcg", ["city", "trip"]),
-        paired_test(
-            inter, "lgbm:osm+wiki|xquad+context", "manual|round_robin", "hit", ["city", "trip", "step"]
-        ),
-        paired_test(inter, "lgbm:osm|xquad+context", "manual|round_robin", "hit", ["city", "trip", "step"]),
-        paired_test(
-            inter, "lgbm:osm+wiki|xquad+context", "lgbm:osm+wiki|xquad", "hit", ["city", "trip", "step"]
-        ),
+        # learned relevance vs the hand-made score, same list construction
+        paired_test(explore, "lgbm:osm|round_robin", old, "ndcg", trip),
+        paired_test(explore, f"{DEPLOYED}|round_robin", old, "ndcg", trip),
+        paired_test(explore, "lgbm:osm+wiki|round_robin", old, "ndcg", trip),
+        # the configuration shipped in the service vs the coursework algorithm
+        paired_test(both, PROPOSED, old, "ndcg", trip),
+        paired_test(both, PROPOSED, old, "recall", trip),
+        paired_test(both, PROPOSED, old, "ild", trip),
+        paired_test(both, PROPOSED, old, "categories", trip),
+        # price of diversification
+        paired_test(explore, f"{DEPLOYED}|xquad", f"{DEPLOYED}|top_k", "ild", trip),
+        paired_test(explore, f"{DEPLOYED}|xquad", f"{DEPLOYED}|top_k", "ndcg", trip),
+        paired_test(both, PROPOSED, f"{DEPLOYED}|w=0.15|lam=0.00", "ndcg", trip),
+        paired_test(both, PROPOSED, f"{DEPLOYED}|w=0.15|lam=0.00", "ild", trip),
+        paired_test(explore, old, "manual|top_k", "ndcg", trip),
+        # round-robin from the coursework vs xQuAD on the same relevance
+        paired_test(explore, f"{DEPLOYED}|xquad", f"{DEPLOYED}|round_robin", "ndcg", trip),
+        # interactive protocol
+        paired_test(inter, "proposed", old, "hit", step),
+        paired_test(inter, "proposed", old, "mrr", step),
+        paired_test(inter, f"{DEPLOYED}|top_k", old, "hit", step),
+        paired_test(inter, "lgbm:osm|top_k", old, "hit", step),
+        paired_test(inter, "lgbm:osm+wiki|xquad+context", "lgbm:osm+wiki|xquad", "hit", step),
+        paired_test(inter, "proposed+context", "proposed", "hit", step),
     ]
     tests = pd.DataFrame(tests)
     tests.to_csv(RESULTS_DIR / "e3_tests.csv", index=False)

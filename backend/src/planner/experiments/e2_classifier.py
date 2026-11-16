@@ -21,7 +21,13 @@ from ..ranking import model as rm
 from ..ranking.features import manual_popularity
 from .dataset import load_candidates
 
-VARIANTS = [("logreg", "osm"), ("lgbm", "osm"), ("logreg", "osm+wiki"), ("lgbm", "osm+wiki")]
+VARIANTS = [
+    ("logreg", "osm"),
+    ("lgbm", "osm"),
+    ("lgbm", "osm+sitelinks"),
+    ("logreg", "osm+wiki"),
+    ("lgbm", "osm+wiki"),
+]
 BASELINES = ["manual", "n_tags", "sitelinks", "pageviews"]
 
 
@@ -80,7 +86,10 @@ def main() -> None:
             )
     res = pd.DataFrame(rows)
     macro = (
-        res[res.city.isin(MAIN_CITIES)].groupby("method")[["roc_auc", "pr_auc", "r_precision"]].mean().reset_index()
+        res[res.city.isin(MAIN_CITIES)]
+        .groupby("method")[["roc_auc", "pr_auc", "r_precision"]]
+        .mean()
+        .reset_index()
     )
     macro.insert(0, "city", "macro")
     res = pd.concat([res, macro], ignore_index=True)
@@ -94,16 +103,21 @@ def main() -> None:
         curves.append(pd.DataFrame({"method": m, "fpr": grid, "tpr": np.interp(grid, fpr, tpr)}))
     pd.concat(curves).to_csv(RESULTS_DIR / "e2_roc.csv", index=False)
 
-    # Confusion matrix of the best OSM-only model; threshold chosen on training cities only
-    best = "lgbm:osm"
-    cm_total = np.zeros((2, 2), int)
-    for city in MAIN_CITIES:
-        train, test = main[main.city != city], main[main.city == city]
-        thr = _best_threshold(train["label"].to_numpy(), train[best].to_numpy())
-        cm_total += confusion_matrix(test["label"], test[best] >= thr, labels=[0, 1])
-    pd.DataFrame(cm_total, index=["actual_0", "actual_1"], columns=["pred_0", "pred_1"]).to_csv(
-        RESULTS_DIR / "e2_confusion.csv"
-    )
+    # Confusion matrices at the F1-optimal threshold; the threshold comes from training cities only
+    cms = []
+    for method in ("manual", "lgbm:osm", "lgbm:osm+sitelinks"):
+        cm = np.zeros((2, 2), int)
+        for city in MAIN_CITIES:
+            train, test = main[main.city != city], main[main.city == city]
+            thr = _best_threshold(train["label"].to_numpy(), train[method].to_numpy())
+            cm += confusion_matrix(test["label"], test[method] >= thr, labels=[0, 1])
+        tn, fp, fn, tp = cm.ravel()
+        precision, recall = tp / max(tp + fp, 1), tp / max(tp + fn, 1)
+        cms.append({"method": method, "tn": tn, "fp": fp, "fn": fn, "tp": tp, "precision": precision,
+                    "recall": recall, "f1": 2 * precision * recall / max(precision + recall, 1e-9)})  # fmt: skip
+    cms = pd.DataFrame(cms)
+    cms.to_csv(RESULTS_DIR / "e2_confusion.csv", index=False)
+    cm_total = cms
 
     # Learning curve: how many training cities are needed (test city fixed, random subsets of the rest)
     rng = np.random.default_rng(0)
@@ -119,7 +133,7 @@ def main() -> None:
                 train = df[df.city.isin(subset)]
                 if train["label"].sum() < 5:
                     continue
-                for kind, fs in (("lgbm", "osm"), ("logreg", "osm")):
+                for kind, fs in (("lgbm", "osm"), ("lgbm", "osm+sitelinks")):
                     model = rm.fit(train, fs, kind, seed=rep)
                     pred = rm.predict(model, test, fs)
                     fit_pred = rm.predict(model, train, fs)
@@ -127,7 +141,7 @@ def main() -> None:
                         {
                             "test_city": test_city,
                             "n_train_cities": size,
-                            "model": kind,
+                            "model": f"{kind}:{fs}",
                             "n_train_pos": int(train["label"].sum()),
                             "test_auc": roc_auc_score(test["label"], pred),
                             "train_auc": roc_auc_score(train["label"], fit_pred),
@@ -156,7 +170,7 @@ def main() -> None:
         .round(3)
         .to_string()
     )
-    print(pd.DataFrame(cm_total))
+    print(cm_total.round(3).to_string(index=False))
     print(imp.sort_values("lgbm_gain", ascending=False).head(12).round(3).to_string(index=False))
     (RESULTS_DIR / "e2_summary.json").write_text(
         json.dumps(
