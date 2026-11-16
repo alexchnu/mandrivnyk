@@ -93,9 +93,11 @@ def _isolate(monkeypatch):
     """No background jobs and no rate-limit carry-over between tests."""
     from planner.service import ingest
     from planner.service.api import auth, discovery
+    from planner.service.providers import osrm
 
     monkeypatch.setattr(ingest, "schedule_enrichment", lambda area_id: None)
     ingest._failed_at.clear()
+    osrm.reset()
     auth.limiter.reset()
     discovery._search_limiter.reset()
 

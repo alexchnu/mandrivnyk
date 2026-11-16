@@ -53,7 +53,7 @@ def _save(fig, name: str) -> None:
     FIG_DIR.mkdir(parents=True, exist_ok=True)
     for ax in fig.axes:  # Ukrainian typography: decimal comma on numeric axes
         for axis in (ax.xaxis, ax.yaxis):
-            if not isinstance(axis.get_major_formatter(), matplotlib.ticker.FixedFormatter):
+            if isinstance(axis.get_major_formatter(), matplotlib.ticker.ScalarFormatter):
                 axis.set_major_formatter(matplotlib.ticker.FuncFormatter(_comma))
     fig.savefig(FIG_DIR / f"{name}.png")
     plt.close(fig)
@@ -262,10 +262,10 @@ def fig_e3() -> None:
     ax.annotate(
         "Обрана конфігурація\n(w = 0,15; λ = 0,25)",
         (best.ild, best.ndcg),
-        xytext=(-70, -4),
+        xytext=(-34, -62),
         textcoords="offset points",
         ha="right",
-        va="center",
+        va="top",
         color=INK,
         fontsize=9,
         arrowprops={"arrowstyle": "-", "color": MUTED, "linewidth": 0.8},
@@ -395,6 +395,22 @@ def fig_e4() -> None:
     ax.set_xticks(by_n.n)
     ax.legend(loc="upper left")
     _save(fig, "e4_by_size")
+
+    overall = pd.read_csv(RESULTS_DIR / "e4_toptw_overall.csv", index_col=0)
+    rows = [("ortools_cold_1s", "OR-Tools, холодний старт (1 с)", MUTED), ("greedy", "Жадібна вставка", ORANGE),
+            ("ortools_warm_1s", "OR-Tools від жадібного плану (1 с)", AQUA), ("ils_1s", "Ітерований локальний пошук (1 с)", BLUE),
+            ("hybrid_1.5s", "Гібридний метод (1,5 с)", BLUE), ("ils_5s", "Ітерований локальний пошук (5 с)", BLUE)]  # fmt: skip
+    fig, ax = plt.subplots(figsize=(6.2, 3.0))
+    y = np.arange(len(rows))[::-1]
+    vals = np.array([overall.loc[k, "bound_share"] * 100 for k, _, _ in rows])
+    ax.barh(y, vals, height=0.6, color=[c for _, _, c in rows])
+    for yi, v in zip(y, vals, strict=True):
+        ax.text(v + 0.8, yi, f"{_num(v, 1)} %", va="center", color=INK)
+    ax.set_yticks(y, [n for _, n, _ in rows])
+    ax.set_xlim(0, 108)
+    ax.set_xlabel("Зібрана значущість, % від верхньої межі")
+    ax.grid(axis="y", visible=False)
+    _save(fig, "e4_toptw")
 
 
 def main() -> None:

@@ -28,6 +28,8 @@ class Settings(BaseSettings):
     osrm_url: str = "https://routing.openstreetmap.de/routed-foot"
     photon_url: str = "https://photon.komoot.io"
     http_timeout_s: float = 25.0
+    osrm_timeout_s: float = 5.0  # a plan must not wait long for the routing server
+    osrm_cooldown_s: float = 60.0  # after a failure routing is skipped for this long
 
     # Recommendation defaults (chosen in experiment E3)
     model_dir: Path = _PACKAGE_DIR / "ranking" / "artifacts"

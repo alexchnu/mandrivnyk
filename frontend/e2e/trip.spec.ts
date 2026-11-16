@@ -47,10 +47,15 @@ test('plan, optimise, save, share and claim a trip', async ({ page, browser }) =
 
   // 3. two days: stops are split and each day has its own timetable
   await page.getByLabel('Днів').selectOption('2')
+  await page.getByLabel('Повертаюсь до').fill('15:00') // a short day, so the stops do not fit into one
   await page.getByRole('button', { name: 'Впорядкувати маршрут' }).click()
   await expect(page.getByRole('tab', { name: /День 2/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Впорядкувати маршрут' })).toBeEnabled()
   await page.getByRole('tab', { name: /День 2/ }).click()
+  await expect(page.locator('.stop').first()).toBeVisible()
+  await page.waitForTimeout(1500) // let the toast of the previous step fade for the screenshot
   await shot(page, '04-two-days')
+  await page.getByLabel('Повертаюсь до').fill('19:00')
   await page.getByLabel('Днів').selectOption('1')
 
   // 4. save and find it in "My trips"
