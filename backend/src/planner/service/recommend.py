@@ -206,7 +206,7 @@ async def recommend(session: AsyncSession, req: RecommendRequest) -> RecommendRe
     picked = [pois[i] for i in chosen]
     await enrich_summaries(session, picked, req.lang)
 
-    top_cut = np.quantile([p.relevance for p in pois], 0.95)
+    top_cut = np.quantile([p.relevance for p in pois], 0.98)
     seen = set(context_categories)
     items: list[PoiOut] = []
     for i, poi in zip(chosen, picked, strict=True):

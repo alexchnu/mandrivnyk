@@ -73,8 +73,8 @@ async def travel_matrix(session: AsyncSession, points: list[Point]) -> tuple[np.
         return est_duration, est_distance, False
     try:
         duration, distance = await osrm.table(points)
-    except ProviderError:
-        log.warning("routing service unavailable, using straight-line estimates")
+    except ProviderError as exc:
+        log.warning("using straight-line estimates: %s", exc)
         return est_duration, est_distance, False
     unreachable = np.isnan(duration) | np.isnan(distance)
     duration[unreachable] = est_duration[unreachable]

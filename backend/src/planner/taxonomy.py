@@ -106,7 +106,23 @@ _RULE_RANK: dict[Rule, int] = {r: i for i, r in enumerate(RULES)}
 # place of one of these kinds is treated as a landmark even without a tourism tag
 # (parliaments, notable hotels, university buildings, railway stations, ...).
 NOTABLE = Rule("wikidata", "*", "landmark", 20)
-_NOTABLE_KEYS = ("building", "historic", "tourism", "man_made", "leisure", "natural", "place", "amenity")
+_NOTABLE_KEYS = ("building", "historic", "tourism", "man_made", "leisure", "natural", "amenity")
+# Everyday facilities are not sights even when someone linked them to Wikidata.
+_NOT_NOTABLE_AMENITIES = frozenset({
+    "school", "kindergarten", "hospital", "clinic", "doctors", "pharmacy", "bank", "fuel", "parking",
+    "post_office", "police", "fire_station", "bus_station", "courthouse", "prison", "college",
+})  # fmt: skip
+
+
+def _is_notable_place(tags: dict[str, str]) -> bool:
+    """A physical place with its own encyclopedia entry (not a settlement or an area)."""
+    if "wikidata" not in tags and "wikipedia" not in tags:
+        return False
+    if "place" in tags or "boundary" in tags or "admin_level" in tags:
+        return False  # the node of a city or district carries the city's own Wikidata id
+    if tags.get("amenity") in _NOT_NOTABLE_AMENITIES:
+        return False
+    return any(k in tags for k in _NOTABLE_KEYS) or tags.get("railway") == "station"
 
 
 def classify(tags: dict[str, str]) -> Rule | None:
@@ -119,8 +135,6 @@ def classify(tags: dict[str, str]) -> Rule | None:
         rule = _INDEX.get((key, value))
         if rule is not None and (best is None or _RULE_RANK[rule] < _RULE_RANK[best]):
             best = rule
-    notable_entry = "wikidata" in tags or "wikipedia" in tags
-    physical_place = any(k in tags for k in _NOTABLE_KEYS) or tags.get("railway") == "station"
-    if best is None and notable_entry and physical_place:
+    if best is None and _is_notable_place(tags):
         return NOTABLE
     return best
