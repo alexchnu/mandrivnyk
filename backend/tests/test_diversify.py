@@ -63,7 +63,12 @@ def test_xquad_respects_already_selected():
 def test_selectors_handle_small_inputs():
     scores, cats = np.array([0.3, 0.9]), np.array([0, 0])
     sim = dv.category_similarity(cats)
-    for res in (dv.top_k(scores, 5), dv.round_robin(scores, cats, 5), dv.mmr(scores, sim, 5), dv.xquad(scores, cats, 5)):
+    for res in (
+        dv.top_k(scores, 5),
+        dv.round_robin(scores, cats, 5),
+        dv.mmr(scores, sim, 5),
+        dv.xquad(scores, cats, 5),
+    ):
         assert sorted(res) == [0, 1]
     assert dv.top_k(np.array([]), 3) == []
     assert dv.round_robin(np.array([]), np.array([]), 3) == []

@@ -34,7 +34,7 @@ def _parse_days(text: str) -> list[int] | None:
             if a.strip() not in _DAYS or b.strip() not in _DAYS:
                 return None
             i, j = _DAYS[a.strip()], _DAYS[b.strip()]
-            days.extend(range(i, j + 1) if i <= j else [*range(i, 7), *range(0, j + 1)])
+            days.extend(range(i, j + 1) if i <= j else [*range(i, 7), *range(j + 1)])
         elif part in _DAYS:
             days.append(_DAYS[part])
         else:

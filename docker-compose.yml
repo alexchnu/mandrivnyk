@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgis/postgis:16-3.4-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-planner}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-planner}
+      POSTGRES_DB: ${POSTGRES_DB:-planner}
+    ports:
+      - "${POSTGRES_PORT:-5544}:5432"
+    volumes:
+      - ${PLANNER_DATA_ROOT:-./.data}/pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-planner} -d ${POSTGRES_DB:-planner}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20

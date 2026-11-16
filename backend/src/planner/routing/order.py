@@ -7,14 +7,14 @@ metres), not necessarily symmetric.
 
 from __future__ import annotations
 
-from itertools import combinations
+from itertools import combinations, pairwise
 
 import numpy as np
 from ortools.constraint_solver import pywrapcp, routing_enums_pb2
 
 
 def path_cost(cost: np.ndarray, order: list[int]) -> float:
-    return float(sum(cost[a, b] for a, b in zip(order[:-1], order[1:])))
+    return float(sum(cost[a, b] for a, b in pairwise(order)))
 
 
 def nearest_neighbour(cost: np.ndarray, start: int = 0, end: int | None = None) -> list[int]:
@@ -84,7 +84,9 @@ def held_karp(cost: np.ndarray, start: int = 0, end: int | None = None) -> list[
     return [start, *reversed(order)]
 
 
-def ortools_path(cost: np.ndarray, start: int = 0, end: int | None = None, time_limit_s: float = 1.0) -> list[int]:
+def ortools_path(
+    cost: np.ndarray, start: int = 0, end: int | None = None, time_limit_s: float = 1.0
+) -> list[int]:
     """Open-path TSP with OR-Tools (guided local search metaheuristic)."""
     n = len(cost)
     if n <= 2:
@@ -100,7 +102,7 @@ def ortools_path(cost: np.ndarray, start: int = 0, end: int | None = None, time_
         a, b = manager.IndexToNode(i), manager.IndexToNode(j)
         if a >= n or b >= n:  # dummy finish node: leaving the path costs nothing
             return 0
-        return int(round(cost[a, b] * scale))
+        return round(cost[a, b] * scale)
 
     routing.SetArcCostEvaluatorOfAllVehicles(routing.RegisterTransitCallback(transit))
     params = pywrapcp.DefaultRoutingSearchParameters()
@@ -119,7 +121,9 @@ def ortools_path(cost: np.ndarray, start: int = 0, end: int | None = None, time_
     return order
 
 
-def optimise_order(cost: np.ndarray, start: int = 0, end: int | None = None, time_limit_s: float = 1.0) -> list[int]:
+def optimise_order(
+    cost: np.ndarray, start: int = 0, end: int | None = None, time_limit_s: float = 1.0
+) -> list[int]:
     """Production entry point: exact for small trips, OR-Tools otherwise."""
     if len(cost) <= 10:
         return held_karp(cost, start, end)

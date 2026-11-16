@@ -10,6 +10,7 @@ and an OR-Tools routing model with optional (prize-collecting) nodes.
 
 from __future__ import annotations
 
+import itertools
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -56,7 +57,7 @@ class Plan:
             seq = [v.stop for v in day]
             if depot is not None and seq:
                 total += travel[depot, seq[0]]
-            total += sum(travel[a, b] for a, b in zip(seq[:-1], seq[1:]))
+            total += sum(travel[a, b] for a, b in itertools.pairwise(seq))
         return float(total)
 
 
@@ -72,14 +73,19 @@ def _feasible_start(arrive: int, visit: int, windows: list[Interval] | None, day
 
 
 def schedule_day(
-    order: list[int], stops: list[Stop], travel: np.ndarray, day: int, day_start: int, day_end: int,
+    order: list[int],
+    stops: list[Stop],
+    travel: np.ndarray,
+    day: int,
+    day_start: int,
+    day_end: int,
     depot: int | None = None,
 ) -> list[Visit] | None:
     """Simulate a day for a fixed order; ``None`` when some stop cannot be served."""
     visits: list[Visit] = []
     clock, prev = day_start, depot
     for i in order:
-        arrive = clock + (int(round(travel[prev, i])) if prev is not None else 0)
+        arrive = clock + (round(travel[prev, i]) if prev is not None else 0)
         start = _feasible_start(arrive, stops[i].visit_min, stops[i].windows[day], day_end)
         if start is None:
             return None
@@ -94,7 +100,11 @@ def _day_duration(visits: list[Visit], day_start: int) -> int:
 
 
 def greedy_plan(
-    stops: list[Stop], travel: np.ndarray, n_days: int, day_start: int = 9 * 60, day_end: int = 19 * 60,
+    stops: list[Stop],
+    travel: np.ndarray,
+    n_days: int,
+    day_start: int = 9 * 60,
+    day_end: int = 19 * 60,
     depot: int | None = None,
 ) -> Plan:
     """Cheapest-insertion heuristic: repeatedly add the stop with the best
@@ -128,8 +138,13 @@ def greedy_plan(
 
 
 def ortools_plan(
-    stops: list[Stop], travel: np.ndarray, n_days: int, day_start: int = 9 * 60, day_end: int = 19 * 60,
-    depot: int | None = None, time_limit_s: float = 2.0,
+    stops: list[Stop],
+    travel: np.ndarray,
+    n_days: int,
+    day_start: int = 9 * 60,
+    day_end: int = 19 * 60,
+    depot: int | None = None,
+    time_limit_s: float = 2.0,
 ) -> Plan:
     """Prize-collecting vehicle routing model: one vehicle per day.
 
@@ -172,8 +187,8 @@ def ortools_plan(
         if b == 0:
             return 0  # the day ends at the last stop
         if a == 0:
-            return int(round(travel[depot, node_stop[b]])) if depot is not None else 0
-        return int(round(travel[node_stop[a], node_stop[b]]))
+            return round(travel[depot, node_stop[b]]) if depot is not None else 0
+        return round(travel[node_stop[a], node_stop[b]])
 
     def time_cb(i: int, j: int) -> int:
         a, b = manager.IndexToNode(i), manager.IndexToNode(j)
@@ -195,7 +210,7 @@ def ortools_plan(
         cumul = time_dim.CumulVar(index)
         usable = node_windows[node]
         cumul.SetRange(usable[0][0], usable[-1][1])
-        for (_, prev_end), (next_start, _) in zip(usable[:-1], usable[1:]):
+        for (_, prev_end), (next_start, _) in itertools.pairwise(usable):
             if next_start - 1 >= prev_end + 1:
                 cumul.RemoveInterval(prev_end + 1, next_start - 1)
 
@@ -206,7 +221,7 @@ def ortools_plan(
     for i in real:
         if not copies[i]:
             continue
-        penalty = int(round(unit * stops[i].profit / max_profit)) + 1
+        penalty = round(unit * stops[i].profit / max_profit) + 1
         if stops[i].mandatory:
             penalty = int(unit * 100)
         routing.AddDisjunction([manager.NodeToIndex(n) for n in copies[i]], penalty, 1)

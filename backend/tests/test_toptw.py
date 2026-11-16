@@ -14,7 +14,10 @@ def _instance(n, n_days, seed, windows=True):
     for _ in range(n):
         if windows and rng.random() < 0.6:
             open_ = int(rng.choice([540, 600, 720]))
-            w = [[(open_, open_ + int(rng.choice([240, 480])))] if rng.random() > 0.15 else [] for _ in range(n_days)]
+            w = [
+                [(open_, open_ + int(rng.choice([240, 480])))] if rng.random() > 0.15 else []
+                for _ in range(n_days)
+            ]
         else:
             w = [None] * n_days
         stops.append(Stop(float(rng.random()), int(rng.choice([15, 30, 45, 60, 90])), w))

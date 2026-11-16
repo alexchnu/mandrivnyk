@@ -25,7 +25,7 @@ def normalise_name(name: str) -> str:
     text = "".join(ch for ch in text if not unicodedata.combining(ch)).casefold()
     text = _PUNCT.sub(" ", text)
     text = _SPACE.sub(" ", text).strip()
-    return text[4:] if text.startswith("the ") else text
+    return text.removeprefix("the ")
 
 
 def dedupe(df: pd.DataFrame, radius_m: float = 150.0) -> pd.DataFrame:
@@ -36,7 +36,9 @@ def dedupe(df: pd.DataFrame, radius_m: float = 150.0) -> pd.DataFrame:
     work["_norm"] = work["name"].map(normalise_name)
     has_wiki = work["tags"].str.contains('"wikidata"', regex=False)
     kind_rank = work["poi_id"].str[0].map({"r": 2, "w": 1, "n": 0}).fillna(0)
-    work["_quality"] = has_wiki.astype(int) * 1000 + work["category"].notna() * 100 + work["n_tags"] + kind_rank
+    work["_quality"] = (
+        has_wiki.astype(int) * 1000 + work["category"].notna() * 100 + work["n_tags"] + kind_rank
+    )
     keep: list[int] = []
     for _, grp in work.groupby("_norm", sort=False):
         if len(grp) == 1:

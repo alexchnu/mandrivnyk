@@ -20,7 +20,7 @@ class BBox:
         return self.south <= lat <= self.north and self.west <= lon <= self.east
 
     @classmethod
-    def around(cls, lats, lons, margin_m: float) -> "BBox":
+    def around(cls, lats, lons, margin_m: float) -> BBox:
         lats, lons = np.asarray(lats, float), np.asarray(lons, float)
         dlat = np.degrees(margin_m / EARTH_RADIUS_M)
         dlon = dlat / max(np.cos(np.radians(lats.mean())), 1e-6)
