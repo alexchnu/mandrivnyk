@@ -1,0 +1,82 @@
+Traceback (most recent call last):
+  File "/home/koucha/Documents/Uni/5/2/thesis/planner/backend/.venv/lib/python3.12/site-packages/httpx/_transports/default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "/home/koucha/Documents/Uni/5/2/thesis/planner/backend/.venv/lib/python3.12/site-packages/httpx/_transports/default.py", line 250, in handle_request
+    resp = self._pool.handle_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/koucha/Documents/Uni/5/2/thesis/planner/backend/.venv/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "/home/koucha/Documents/Uni/5/2/thesis/planner/backend/.venv/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/koucha/Documents/Uni/5/2/thesis/planner/backend/.venv/lib/python3.12/site-packages/httpcore/_sync/connection.py", line 103, in handle_request
+    return self._connection.handle_request(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/koucha/Documents/Uni/5/2/thesis/planner/backend/.venv/lib/python3.12/site-packages/httpcore/_sync/http11.py", line 136, in handle_request
+    raise exc
+  File "/home/koucha/Documents/Uni/5/2/thesis/planner/backend/.venv/lib/python3.12/site-packages/httpcore/_sync/http11.py", line 106, in handle_request
+    ) = self._receive_response_headers(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/koucha/Documents/Uni/5/2/thesis/planner/backend/.venv/lib/python3.12/site-packages/httpcore/_sync/http11.py", line 177, in _receive_response_headers
+    event = self._receive_event(timeout=timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/koucha/Documents/Uni/5/2/thesis/planner/backend/.venv/lib/python3.12/site-packages/httpcore/_sync/http11.py", line 231, in _receive_event
+    raise RemoteProtocolError(msg)
+httpcore.RemoteProtocolError: Server disconnected without sending a response.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/koucha/Documents/Uni/5/2/thesis/planner/backend/src/planner/experiments/e4_toptw.py", line 103, in <module>
+    main()
+  File "/home/koucha/Documents/Uni/5/2/thesis/planner/backend/src/planner/experiments/e4_toptw.py", line 60, in main
+    stops, minutes, hours_share = build_instance(city, scored, n)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/koucha/Documents/Uni/5/2/thesis/planner/backend/src/planner/experiments/e4_toptw.py", line 43, in build_instance
+    duration, _ = table(top["lat"], top["lon"])
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/koucha/Documents/Uni/5/2/thesis/planner/backend/src/planner/routing/osrm.py", line 50, in table
+    resp = http.get(f"{base_url}/table/v1/foot/{coords}", params=params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/koucha/Documents/Uni/5/2/thesis/planner/backend/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1053, in get
+    return self.request(
+           ^^^^^^^^^^^^^
+  File "/home/koucha/Documents/Uni/5/2/thesis/planner/backend/.venv/lib/python3.12/site-packages/httpx/_client.py", line 825, in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/koucha/Documents/Uni/5/2/thesis/planner/backend/.venv/lib/python3.12/site-packages/httpx/_client.py", line 914, in send
+    response = self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/koucha/Documents/Uni/5/2/thesis/planner/backend/.venv/lib/python3.12/site-packages/httpx/_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/koucha/Documents/Uni/5/2/thesis/planner/backend/.venv/lib/python3.12/site-packages/httpx/_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/koucha/Documents/Uni/5/2/thesis/planner/backend/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1014, in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/koucha/Documents/Uni/5/2/thesis/planner/backend/.venv/lib/python3.12/site-packages/httpx/_transports/default.py", line 249, in handle_request
+    with map_httpcore_exceptions():
+  File "/usr/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/home/koucha/Documents/Uni/5/2/thesis/planner/backend/.venv/lib/python3.12/site-packages/httpx/_transports/default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.RemoteProtocolError: Server disconnected without sending a response.
+edinburgh 20 done
+edinburgh 40 done
+edinburgh 60 done
+glasgow 20 done
+glasgow 40 done
+glasgow 60 done
+budapest 20 done
+budapest 40 done
+budapest 60 done
+vienna 20 done
+vienna 40 done
+vienna 60 done
+toronto 20 done
+toronto 40 done
+toronto 60 done

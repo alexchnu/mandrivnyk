@@ -39,7 +39,7 @@ describe('CitySearch', () => {
     const options = await screen.findAllByRole('option')
     expect(options).toHaveLength(2)
     expect(fetchMock).toHaveBeenCalledTimes(1) // one request for the whole word, not one per letter
-    expect(String(fetchMock.mock.calls[0][0])).toContain('/api/v1/places?q=%D0%A7')
+    expect(String((fetchMock.mock.calls as unknown[][])[0][0])).toContain('/api/v1/places?q=%D0%A7')
     await userEvent.keyboard('{ArrowDown}{Enter}')
     expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ lat: 48.54 }))
     expect(input).toHaveValue('')

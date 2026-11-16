@@ -99,7 +99,7 @@ def main() -> None:
     curves = []
     for m in methods:
         fpr, tpr, _ = roc_curve(main["label"], main[m])
-        grid = np.linspace(0, 1, 201)
+        grid = np.unique(np.concatenate([np.linspace(0, 0.1, 401), np.linspace(0, 1, 201)]))
         curves.append(pd.DataFrame({"method": m, "fpr": grid, "tpr": np.interp(grid, fpr, tpr)}))
     pd.concat(curves).to_csv(RESULTS_DIR / "e2_roc.csv", index=False)
 
