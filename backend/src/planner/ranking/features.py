@@ -65,7 +65,11 @@ def osm_features(df: pd.DataFrame, centre: tuple[float, float] | None = None) ->
     out["is_attraction"] = [float(t.get("tourism") == "attraction") for t in tags]
     out["n_tags_log"] = np.log1p(df["n_tags"].to_numpy(float))
     kind = df["poi_id"].str[0]
-    out["is_node"], out["is_way"], out["is_relation"] = (kind == "n") * 1.0, (kind == "w") * 1.0, (kind == "r") * 1.0
+    out["is_node"], out["is_way"], out["is_relation"] = (
+        (kind == "n") * 1.0,
+        (kind == "w") * 1.0,
+        (kind == "r") * 1.0,
+    )
     for cat in CATEGORIES:
         out[f"cat_{cat}"] = (df["category"] == cat).to_numpy(float)
 

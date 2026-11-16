@@ -37,8 +37,10 @@ def main() -> None:
             continue
         for key, df in frames.items():
             df.to_parquet(PROCESSED_DIR / f"osm_{key}.parquet", index=False)
-            print(f"{key}: {len(df)} named objects, {df['category'].notna().sum()} classified "
-                  f"({time.time() - t0:.0f}s)")
+            print(
+                f"{key}: {len(df)} named objects, {df['category'].notna().sum()} classified "
+                f"({time.time() - t0:.0f}s)"
+            )
 
 
 if __name__ == "__main__":

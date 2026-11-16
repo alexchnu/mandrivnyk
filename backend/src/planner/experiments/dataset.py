@@ -12,43 +12,42 @@ import json
 
 import numpy as np
 import pandas as pd
-from tqdm import tqdm
 
+from ..data import wikidumps
 from ..data.flickr import CITIES, poi_popularity
 from ..data.paths import PROCESSED_DIR
-from ..data.wikimedia import Wikimedia
 from ..osm.dedupe import dedupe
 from ..ranking.features import density_centre, osm_features
+from .wiki_signals import parse_qid, parse_wikipedia_tag
 
 
-def _wiki_signals(df: pd.DataFrame, wiki: Wikimedia) -> pd.DataFrame:
-    tags = [json.loads(t) for t in df["tags"]]
-    qids = [t.get("wikidata", "").split(";")[0].strip() for t in tags]
-    valid = [q for q in qids if q.startswith("Q") and q[1:].isdigit()]
-    ents = wiki.entities(valid)
-    sitelinks = np.zeros(len(df))
-    views = np.zeros(len(df))
-    for i, (q, t) in enumerate(tqdm(list(zip(qids, tags)), desc="pageviews", leave=False)):
-        ent = ents.get(q) or {}
-        sitelinks[i] = ent.get("sitelinks", 0)
-        seen: set[tuple[str, str]] = set()
-        if ent.get("enwiki"):
-            seen.add(("en", ent["enwiki"]))
-        local = t.get("wikipedia", "")
-        if ":" in local:
-            lang, title = local.split(":", 1)
-            if lang.isalpha() and len(lang) <= 3:
-                seen.add((lang, title))
-        views[i] = sum(wiki.pageviews(f"{lang}.wikipedia", title) for lang, title in seen)
-    return pd.DataFrame({"qid": qids, "sitelinks": sitelinks, "pageviews": views}, index=df.index)
+def _wiki_signals(
+    df: pd.DataFrame, signals: pd.DataFrame, title_index: dict[tuple[str, str], int]
+) -> pd.DataFrame:
+    """Attach Wikidata sitelinks and Wikipedia pageviews (all languages, one month)."""
+    items: list[int | None] = []
+    for raw in df["tags"]:
+        tags = json.loads(raw)
+        item = parse_qid(tags.get("wikidata"))
+        if item is None:
+            page = parse_wikipedia_tag(tags.get("wikipedia"))
+            item = title_index.get(page) if page else None
+        items.append(item)
+    out = pd.DataFrame({"item": pd.array(items, dtype="Int64")}, index=df.index)
+    out = out.join(signals.set_index("item")[["sitelinks", "pageviews", "pageviews_en"]], on="item")
+    out[["sitelinks", "pageviews", "pageviews_en"]] = out[["sitelinks", "pageviews", "pageviews_en"]].fillna(
+        0.0
+    )
+    out["qid"] = ["" if pd.isna(i) else f"Q{i}" for i in out["item"]]
+    return out[["qid", "sitelinks", "pageviews", "pageviews_en"]]
 
 
-def build_city(city: str, wiki: Wikimedia, matches: pd.DataFrame) -> pd.DataFrame:
+def build_city(city: str, matches: pd.DataFrame, signals: pd.DataFrame, title_index: dict) -> pd.DataFrame:
     raw = dedupe(pd.read_parquet(PROCESSED_DIR / f"osm_{city}.parquet"))
     centre = density_centre(raw)
     df = raw[raw["category"].notna()].reset_index(drop=True)
     feats = osm_features(df, centre)
-    wiki_df = _wiki_signals(df, wiki)
+    wiki_df = _wiki_signals(df, signals, title_index)
     feats["sitelinks_log"] = np.log1p(wiki_df["sitelinks"])
     feats["pageviews_log"] = np.log1p(wiki_df["pageviews"])
 
@@ -67,16 +66,21 @@ def build_city(city: str, wiki: Wikimedia, matches: pd.DataFrame) -> pd.DataFram
 
 
 def main() -> None:
-    wiki = Wikimedia()
     matches = pd.read_parquet(PROCESSED_DIR / "flickr_osm_matches.parquet")
+    signals = wikidumps.item_signals()
+    links = pd.read_parquet(wikidumps.SITELINKS_TABLE)
+    title_index = {(site, title): int(item) for item, site, title in links.itertuples(index=False)}
     for city in CITIES:
         src, dst = PROCESSED_DIR / f"osm_{city}.parquet", PROCESSED_DIR / f"candidates_{city}.parquet"
-        if not src.exists() or dst.exists() or city not in set(matches["city"]):
+        if not src.exists() or city not in set(matches["city"]):
             continue
-        df = build_city(city, wiki, matches)
+        df = build_city(city, matches, signals, title_index)
         df.to_parquet(dst, index=False)
-        print(f"{city}: {len(df)} candidates, {int(df['label'].sum())} visited by Flickr users, "
-              f"{int((df['sitelinks'] > 0).sum())} with Wikidata entry")
+        print(
+            f"{city}: {len(df)} candidates, {int(df['label'].sum())} visited by Flickr users, "
+            f"{int((df['sitelinks'] > 0).sum())} with Wikipedia article, "
+            f"{int((df['pageviews'] > 0).sum())} with pageviews"
+        )
 
 
 def load_candidates(cities: list[str] | None = None) -> pd.DataFrame:

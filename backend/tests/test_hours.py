@@ -46,7 +46,9 @@ def test_public_holidays_ignored():
     assert week[2] == [(540, 1020)]
 
 
-@pytest.mark.parametrize("value", [None, "", "sunrise-sunset", "Apr-Oct: Mo-Su 10:00-18:00", "by appointment", "Mo-Fr 9-17"])
+@pytest.mark.parametrize(
+    "value", [None, "", "sunrise-sunset", "Apr-Oct: Mo-Su 10:00-18:00", "by appointment", "Mo-Fr 9-17"]
+)
 def test_unknown_values(value):
     assert h.parse(value) is None
     assert h.is_open(h.parse(value), datetime(2026, 11, 16, 12, 0)) is None

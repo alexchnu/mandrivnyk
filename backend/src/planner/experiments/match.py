@@ -62,13 +62,21 @@ def match_city(city: str, wiki: Wikimedia | None = None) -> pd.DataFrame:
                 sim = max(max(fuzz.token_set_ratio(target, n), fuzz.ratio(target, n)) for n in osm_names[i])
                 if sim < MIN_SIMILARITY:
                     continue
-                key = (round(max(fuzz.ratio(target, n) for n in osm_names[i]) / 10), bool(osm_qid[i]), -dist[i])
+                key = (
+                    round(max(fuzz.ratio(target, n) for n in osm_names[i]) / 10),
+                    bool(osm_qid[i]),
+                    -dist[i],
+                )
                 if best_key is None or key > best_key:
                     best, best_key, how = int(i), key, "name"
         hit = best is not None
         rows.append(
             {
-                "city": city, "flickr_id": f.flickr_id, "flickr_name": f.name, "theme": f.theme, "qid": qid,
+                "city": city,
+                "flickr_id": f.flickr_id,
+                "flickr_name": f.name,
+                "theme": f.theme,
+                "qid": qid,
                 "poi_id": osm["poi_id"].iloc[best] if hit else None,
                 "osm_name": osm["name"].iloc[best] if hit else None,
                 "osm_category": osm["category"].iloc[best] if hit else None,
@@ -88,8 +96,10 @@ def main() -> None:
         m = match_city(city, wiki)
         frames.append(m)
         ok = m["poi_id"].notna()
-        print(f"{city}: matched {ok.sum()}/{len(m)} (by id {(m['method'] == 'wikidata').sum()}), "
-              f"classified {m['osm_category'].notna().sum()}, median dist {m.loc[ok, 'dist_m'].median():.0f} m")
+        print(
+            f"{city}: matched {ok.sum()}/{len(m)} (by id {(m['method'] == 'wikidata').sum()}), "
+            f"classified {m['osm_category'].notna().sum()}, median dist {m.loc[ok, 'dist_m'].median():.0f} m"
+        )
         if (~ok).any():
             print("   unmatched:", "; ".join(m.loc[~ok, "flickr_name"].head(12)))
     if frames:

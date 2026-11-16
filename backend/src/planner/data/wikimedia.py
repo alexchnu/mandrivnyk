@@ -7,7 +7,7 @@ every experiment can be re-run offline and gives identical numbers.
 from __future__ import annotations
 
 import time
-from urllib.parse import quote, unquote
+from urllib.parse import unquote
 
 import httpx
 
@@ -15,10 +15,11 @@ from .kvcache import KVCache
 from .paths import CACHE_DIR
 
 USER_AGENT = "planner-thesis-research/0.1 (academic project; contact via repository)"
-PAGEVIEW_YEAR = 2025
+PAGEVIEW_DAYS = 60
 _MISSING = {"missing": True}
 # Seconds between requests per host; grows automatically when a host answers 429.
-_HOST_INTERVAL_S: dict[str, float] = {"www.wikidata.org": 1.0, "wikimedia.org": 0.1}
+_HOST_INTERVAL_S: dict[str, float] = {}
+_DEFAULT_INTERVAL_S = 1.5
 
 
 class Wikimedia:
@@ -30,7 +31,7 @@ class Wikimedia:
     def _get(self, url: str, params: dict | None = None) -> httpx.Response:
         """GET with a per-host pace that adapts to 429 responses (Retry-After honoured)."""
         host = httpx.URL(url).host
-        interval = _HOST_INTERVAL_S.get(host, 1.0)
+        interval = _HOST_INTERVAL_S.get(host, _DEFAULT_INTERVAL_S)
         for attempt in range(8):
             wait = interval - (time.monotonic() - self._last.get(host, 0.0))
             if wait > 0:
@@ -45,7 +46,7 @@ class Wikimedia:
                 retry_after = resp.headers.get("retry-after", "")
                 pause = float(retry_after) if retry_after.isdigit() else 0.0
                 time.sleep(max(pause, min(2**attempt, 60)))
-                _HOST_INTERVAL_S[host] = min(interval * 1.5, 5.0)
+                _HOST_INTERVAL_S[host] = min(interval * 1.5, 10.0)
                 interval = _HOST_INTERVAL_S[host]
                 continue
             return resp
@@ -62,12 +63,21 @@ class Wikimedia:
             chunk = todo[i : i + 50]
             data = self._get(
                 f"https://{lang}.wikipedia.org/w/api.php",
-                {"action": "query", "format": "json", "formatversion": "2", "redirects": "1",
-                 "prop": "pageprops", "ppprop": "wikibase_item", "titles": "|".join(chunk)},
+                {
+                    "action": "query",
+                    "format": "json",
+                    "formatversion": "2",
+                    "redirects": "1",
+                    "prop": "pageprops",
+                    "ppprop": "wikibase_item",
+                    "titles": "|".join(chunk),
+                },
             ).json()["query"]
             alias = {n["from"]: n["to"] for n in data.get("normalized", [])}
             redir = {r["from"]: r["to"] for r in data.get("redirects", [])}
-            by_title = {p["title"]: p.get("pageprops", {}).get("wikibase_item") for p in data.get("pages", [])}
+            by_title = {
+                p["title"]: p.get("pageprops", {}).get("wikibase_item") for p in data.get("pages", [])
+            }
             fresh = {}
             for title in chunk:
                 final = alias.get(title, title)
@@ -85,10 +95,19 @@ class Wikimedia:
         todo = [q for q in qids if f"ent:{q}" not in cached]
         for i in range(0, len(todo), 50):
             chunk = todo[i : i + 50]
-            data = self._get(
-                "https://www.wikidata.org/w/api.php",
-                {"action": "wbgetentities", "format": "json", "props": "sitelinks", "ids": "|".join(chunk)},
-            ).json().get("entities", {})
+            data = (
+                self._get(
+                    "https://www.wikidata.org/w/api.php",
+                    {
+                        "action": "wbgetentities",
+                        "format": "json",
+                        "props": "sitelinks",
+                        "ids": "|".join(chunk),
+                    },
+                )
+                .json()
+                .get("entities", {})
+            )
             fresh = {}
             for q in chunk:
                 ent = data.get(q)
@@ -96,8 +115,16 @@ class Wikimedia:
                     fresh[f"ent:{q}"] = _MISSING
                     continue
                 links = ent.get("sitelinks", {})
-                wikis = {k: v["title"] for k, v in links.items() if k.endswith("wiki") and k not in ("commonswiki", "specieswiki", "metawiki")}
-                fresh[f"ent:{q}"] = {"sitelinks": len(wikis), "enwiki": wikis.get("enwiki"), "wikis": dict(list(wikis.items())[:400])}
+                wikis = {
+                    k: v["title"]
+                    for k, v in links.items()
+                    if k.endswith("wiki") and k not in ("commonswiki", "specieswiki", "metawiki")
+                }
+                fresh[f"ent:{q}"] = {
+                    "sitelinks": len(wikis),
+                    "enwiki": wikis.get("enwiki"),
+                    "wikis": dict(list(wikis.items())[:400]),
+                }
             # redirects: wbgetentities returns the target id, keep the request id resolvable
             for q in chunk:
                 fresh.setdefault(f"ent:{q}", _MISSING)
@@ -105,18 +132,49 @@ class Wikimedia:
             cached.update(fresh)
         return {q: cached[f"ent:{q}"] for q in qids}
 
-    # -- Pageviews ----------------------------------------------------------
-    def pageviews(self, project: str, title: str, year: int = PAGEVIEW_YEAR) -> int:
-        """Total human pageviews of an article in ``year`` (0 when unknown)."""
-        key = f"pv:{year}:{project}:{title}"
-        hit = self.cache.get(key)
-        if hit is not None:
-            return int(hit["views"])
-        url = (
-            "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/"
-            f"{project}/all-access/user/{quote(title.replace(' ', '_'), safe='')}/monthly/{year}010100/{year}123100"
-        )
-        resp = self._get(url)
-        views = sum(i["views"] for i in resp.json().get("items", [])) if resp.status_code == 200 else 0
-        self.cache.set_many({key: {"views": views}})
-        return views
+    # -- Pageviews --------------------------------------------------------
+    def pageviews(self, lang: str, titles: list[str]) -> dict[str, int]:
+        """Human pageviews of articles over the last ``PAGEVIEW_DAYS`` days.
+
+        Uses the batched ``prop=pageviews`` module of the MediaWiki API (50 titles
+        per request) instead of one REST call per article. Unknown titles get 0.
+        """
+        titles = sorted({t.replace("_", " ").strip() for t in titles if t})
+        keys = {t: f"pv{PAGEVIEW_DAYS}:{lang}:{t}" for t in titles}
+        cached = self.cache.get_many(list(keys.values()))
+        todo = [t for t in titles if keys[t] not in cached]
+        for i in range(0, len(todo), 50):
+            chunk = todo[i : i + 50]
+            views: dict[str, int] = {}
+            alias: dict[str, str] = {}
+            params = {
+                "action": "query",
+                "format": "json",
+                "formatversion": "2",
+                "redirects": "1",
+                "prop": "pageviews",
+                "pvipdays": str(PAGEVIEW_DAYS),
+                "titles": "|".join(chunk),
+            }
+            extra: dict[str, str] = {}
+            while True:
+                data = self._get(f"https://{lang}.wikipedia.org/w/api.php", {**params, **extra}).json()
+                query = data.get("query", {})
+                for n in query.get("normalized", []):
+                    alias[n["from"]] = n["to"]
+                for r in query.get("redirects", []):
+                    alias[r["from"]] = r["to"]
+                for page in query.get("pages", []):
+                    if page.get("pageviews"):
+                        views[page["title"]] = sum(v or 0 for v in page["pageviews"].values())
+                if "continue" not in data:
+                    break
+                extra = data["continue"]
+            fresh = {}
+            for title in chunk:
+                final = alias.get(title, title)
+                final = alias.get(final, final)
+                fresh[keys[title]] = {"views": views.get(final, 0)}
+            self.cache.set_many(fresh)
+            cached.update(fresh)
+        return {t: int(cached[keys[t]]["views"]) for t in titles}

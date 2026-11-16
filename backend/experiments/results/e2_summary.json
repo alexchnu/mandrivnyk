@@ -1,0 +1,18 @@
+{
+ "n_candidates": 56411,
+ "n_positive": 206,
+ "cities": [
+  "edinburgh",
+  "glasgow",
+  "budapest",
+  "vienna",
+  "toronto",
+  "osaka",
+  "delhi",
+  "perth"
+ ],
+ "extra_cities": [
+  "melbourne"
+ ],
+ "n_candidates_extra": 2263
+}

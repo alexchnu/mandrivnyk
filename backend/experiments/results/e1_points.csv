@@ -1,0 +1,326 @@
+city,name,category,flickr_users,manual,n_tags,sitelinks,pageviews
+edinburgh,Arthur's Seat,nature,62.0,0.7000000000000001,37,29.0,0.0
+edinburgh,Calton Hill,nature,148.0,0.7000000000000001,8,23.0,0.0
+edinburgh,Edinburgh Castle,history,426.0,0.9500000000000001,68,57.0,0.0
+edinburgh,Royal Scottish Academy,culture,274.0,0.8500000000000001,15,4.0,0.0
+edinburgh,National Gallery,culture,159.0,0.9500000000000001,18,39.0,0.0
+edinburgh,Royal Botanic Garden Edinburgh,nature,64.0,0.9500000000000001,34,19.0,0.0
+edinburgh,National Monument of Scotland,history,159.0,0.7000000000000001,14,12.0,0.0
+edinburgh,Dynamic Earth,culture,85.0,0.8500000000000001,14,5.0,0.0
+edinburgh,Festival Theatre,entertainment,101.0,0.8500000000000001,17,7.0,0.0
+edinburgh,Edinburgh International Conference Centre (EICC),landmark,53.0,0.7000000000000001,17,2.0,0.0
+edinburgh,Scott Monument,history,356.0,1.0,26,17.0,0.0
+edinburgh,St Andrew's House,landmark,146.0,0.7000000000000001,12,9.0,0.0
+edinburgh,St Giles' Cathedral,religion,492.0,0.9500000000000001,29,29.0,0.0
+edinburgh,Old College,landmark,144.0,0.9500000000000001,15,7.0,0.0
+edinburgh,Usher Hall,entertainment,131.0,0.8500000000000001,15,13.0,0.0
+edinburgh,New College,landmark,482.0,0.7000000000000001,7,5.0,0.0
+edinburgh,Craiglockhart Castle,history,4.0,0.7000000000000001,8,3.0,0.0
+edinburgh,National Museum of Scotland,culture,312.0,0.9500000000000001,31,31.0,0.0
+edinburgh,Forth Road Bridge,landmark,10.0,0.7000000000000001,14,26.0,0.0
+edinburgh,Parliament House,landmark,202.0,0.7000000000000001,6,5.0,0.0
+edinburgh,Forth Bridge,landmark,10.0,0.7000000000000001,16,52.0,0.0
+edinburgh,Parliament Building,landmark,187.0,0.8500000000000001,12,17.0,0.0
+edinburgh,Balmoral Hotel,landmark,306.0,0.44999999999999996,16,11.0,0.0
+edinburgh,Palace of Holyroodhouse,history,127.0,0.9500000000000001,18,43.0,0.0
+edinburgh,West Princes Street Gardens,nature,256.0,0.8,8,14.0,0.0
+glasgow,Mackintosh at the Willow,food,73.0,0.6,14,7.0,0.0
+glasgow,Glasgow Central,landmark,127.0,0.7000000000000001,19,24.0,0.0
+glasgow,Glasgow Queen Street,landmark,181.0,0.7000000000000001,26,21.0,0.0
+glasgow,Glasgow Green,nature,31.0,0.7000000000000001,9,11.0,0.0
+glasgow,Glasgow Caledonian University,landmark,7.0,0.7000000000000001,7,25.0,0.0
+glasgow,Ibrox Stadium,entertainment,6.0,0.8500000000000001,15,40.0,0.0
+glasgow,University of Strathclyde,landmark,27.0,0.7000000000000001,8,35.0,0.0
+glasgow,The Burrell Collection,culture,13.0,0.9500000000000001,16,11.0,0.0
+glasgow,Kelvingrove Art Gallery and Museum,culture,99.0,0.9500000000000001,44,33.0,0.0
+glasgow,Pollok House,landmark,13.0,0.8500000000000001,14,8.0,0.0
+glasgow,Gallery of Modern Art,culture,137.0,0.9500000000000001,19,13.0,0.0
+glasgow,Glasgow Royal Concert Hall,landmark,93.0,0.7000000000000001,10,5.0,0.0
+glasgow,Glasgow Cathedral,religion,91.0,0.9000000000000001,43,27.0,0.0
+glasgow,Glasgow Central Mosque,religion,14.0,0.8500000000000001,21,10.0,0.0
+glasgow,Hilton Glasgow,landmark,27.0,0.8500000000000001,26,2.0,0.0
+glasgow,Kingston Bridge,landmark,16.0,0.44999999999999996,6,3.0,0.0
+glasgow,Glasgow School of Art,landmark,89.0,0.8500000000000001,8,29.0,0.0
+glasgow,Riverside Museum,culture,41.0,0.7,29,19.0,0.0
+glasgow,Royal Conservatoire of Scotland,landmark,71.0,0.8500000000000001,7,18.0,0.0
+glasgow,Celtic Park,entertainment,8.0,0.7000000000000001,12,47.0,0.0
+budapest,Cipők a Duna-parton,history,77.0,0.7000000000000001,23,23.0,0.0
+budapest,Vajdahunyad vára,landmark,102.0,0.9500000000000001,17,24.0,0.0
+budapest,Országos Széchényi Könyvtár,culture,51.0,0.9500000000000001,16,33.0,0.0
+budapest,Margitsziget,landmark,14.0,0.7000000000000001,14,37.0,0.0
+budapest,Gellért-hegy,nature,84.0,0.7000000000000001,15,30.0,0.0
+budapest,Sas-hegy,nature,2.0,0.7000000000000001,8,8.0,0.0
+budapest,Szabadság-szobor,history,116.0,0.7000000000000001,23,25.0,0.0
+budapest,Budapest-Nyugati,landmark,68.0,0.8500000000000001,21,26.0,0.0
+budapest,Magyarok Nagyasszonya Sziklatemplom,religion,94.0,0.9500000000000001,51,17.0,0.0
+budapest,Szabó Ervin,history,22.0,0.3,9,0.0,0.0
+budapest,Magyar Állami Operaház,entertainment,131.0,0.8500000000000001,42,40.0,0.0
+budapest,Gresham-palota,landmark,197.0,0.7000000000000001,17,20.0,0.0
+budapest,Pesti Vigadó,culture,173.0,0.9500000000000001,32,14.0,0.0
+budapest,Központi Vásárcsarnok,landmark,142.0,0.9500000000000001,40,24.0,0.0
+budapest,Műcsarnok,culture,161.0,0.9500000000000001,27,23.0,0.0
+budapest,Szépművészeti múzeum,culture,77.0,0.9500000000000001,39,36.0,0.0
+budapest,Terror Háza Múzeum,culture,89.0,0.9500000000000001,29,30.0,0.0
+budapest,Liszt Ferenc Zeneművészeti Egyetem,landmark,71.0,0.7500000000000001,15,32.0,0.0
+budapest,Művészetek Palotája,culture,19.0,0.8500000000000001,29,17.0,0.0
+budapest,Budavári Nagyboldogasszony-templom,religion,232.0,0.9500000000000001,53,38.0,0.0
+budapest,Sándor-palota,history,239.0,0.7000000000000001,18,30.0,0.0
+budapest,Szent Gellért Gyógyfürdő és Uszoda,landmark,40.0,0.8500000000000001,26,18.0,0.0
+budapest,Memento Park,nature,43.0,0.9500000000000001,27,24.0,0.0
+budapest,Magyar Nemzeti Múzeum,culture,52.0,0.9500000000000001,45,33.0,0.0
+budapest,Széchenyi lánchíd,landmark,206.0,0.8500000000000001,47,45.0,0.0
+budapest,Szabadság híd,landmark,87.0,0.7000000000000001,17,33.0,0.0
+budapest,Erzsébet híd,landmark,90.0,0.7000000000000001,24,28.0,0.0
+budapest,Dohány utcai zsinagóga,religion,131.0,0.9500000000000001,41,35.0,0.0
+budapest,Országház,history,192.0,0.9500000000000001,44,56.0,0.0
+budapest,Iparművészeti Múzeum,culture,32.0,0.9500000000000001,25,24.0,0.0
+budapest,Magyar Földtani és Geofizikai Intézet,culture,2.0,0.7000000000000001,16,10.0,0.0
+budapest,Széchenyi Gyógyfürdő és Uszoda,entertainment,97.0,0.9500000000000001,26,25.0,0.0
+budapest,Szabadság tér,landmark,90.0,0.7000000000000001,11,16.0,0.0
+budapest,Városliget,nature,25.0,0.7000000000000001,11,27.0,0.0
+budapest,Halászbástya,landmark,186.0,0.9500000000000001,28,36.0,0.0
+budapest,Budavári Palota,history,174.0,0.7000000000000001,24,47.0,0.0
+budapest,Szent István-bazilika,religion,244.0,0.9500000000000001,43,42.0,0.0
+vienna,Albertina,culture,212.0,0.9500000000000001,35,46.0,0.0
+vienna,Spanische Hofreitschule,landmark,298.0,0.8500000000000001,22,29.0,0.0
+vienna,Kaisergruft,landmark,145.0,0.9500000000000001,22,32.0,0.0
+vienna,Kaiserliche Schatzkammer,culture,57.0,0.9500000000000001,18,14.0,0.0
+vienna,Prunksaal der Österreichischen Nationalbibliothek,culture,132.0,0.9500000000000001,19,43.0,0.0
+vienna,Haus der Musik,culture,46.0,0.9500000000000001,38,9.0,0.0
+vienna,Haus des Meeres,entertainment,65.0,0.9500000000000001,33,9.0,0.0
+vienna,Tiergarten Schönbrunn,entertainment,67.0,0.9500000000000001,21,36.0,0.0
+vienna,Karlskirche,religion,206.0,0.8500000000000001,44,38.0,0.0
+vienna,Museum Moderner Kunst Stiftung Ludwig Wien,culture,165.0,1.0,39,17.0,0.0
+vienna,Wiener Staatsoper,entertainment,239.0,0.8500000000000001,38,53.0,0.0
+vienna,Schloss Schönbrunn,history,147.0,0.9500000000000001,37,64.0,0.0
+vienna,Leopold Museum,culture,137.0,0.9500000000000001,30,25.0,0.0
+vienna,Palmenhaus,landmark,50.0,0.9500000000000001,20,10.0,0.0
+vienna,Naturhistorisches Museum,culture,204.0,0.9500000000000001,42,41.0,0.0
+vienna,Kunsthistorisches Museum,culture,176.0,0.9500000000000001,45,51.0,0.0
+vienna,Parlament,landmark,203.0,0.9000000000000001,40,23.0,0.0
+vienna,Schweizertor,landmark,213.0,0.9500000000000001,15,54.0,0.0
+vienna,Donauturm,landmark,36.0,0.9500000000000001,32,27.0,0.0
+vienna,Sonnenuhrhaus,landmark,14.0,0.7000000000000001,9,3.0,0.0
+vienna,Riesenrad,landmark,181.0,0.8500000000000001,33,21.0,0.0
+vienna,Mozarthaus Vienna,culture,111.0,0.9500000000000001,30,17.0,0.0
+vienna,Heeresgeschichtliches Museum,culture,13.0,0.9500000000000001,26,28.0,0.0
+vienna,Kunsthaus Wien,landmark,35.0,0.9500000000000001,13,9.0,0.0
+vienna,Stephansdom,religion,492.0,0.9500000000000001,66,59.0,0.0
+vienna,Museum für Angewandte Kunst,culture,78.0,0.8500000000000001,27,26.0,0.0
+vienna,Technisches Museum,culture,16.0,0.9500000000000001,31,20.0,0.0
+vienna,Belvedere,nature,111.0,0.8500000000000001,10,61.0,0.0
+toronto,Riverdale Farm,entertainment,32.0,0.7000000000000001,4,1.0,0.0
+toronto,Exhibition,landmark,29.0,0.7000000000000001,16,5.0,0.0
+toronto,Yorkville,landmark,116.0,0.44999999999999996,9,10.0,0.0
+toronto,Exhibition Place,landmark,37.0,0.7000000000000001,9,10.0,0.0
+toronto,CF Toronto Eaton Centre,shopping,253.0,0.9500000000000001,18,14.0,0.0
+toronto,Royal Ontario Museum,culture,269.0,0.9500000000000001,32,36.0,0.0
+toronto,Rogers Centre,entertainment,155.0,0.8500000000000001,25,35.0,0.0
+toronto,Old City Hall,landmark,234.0,0.7000000000000001,15,9.0,0.0
+toronto,High Park,nature,18.0,0.7000000000000001,8,13.0,0.0
+toronto,Ontario Science Centre,landmark,26.0,0.8500000000000001,14,6.0,0.0
+toronto,Union Station,landmark,255.0,0.8,13,21.0,0.0
+toronto,Ontario Legislative Building,landmark,97.0,0.7000000000000001,18,8.0,0.0
+toronto,Scotiabank Arena,entertainment,129.0,0.8500000000000001,20,39.0,0.0
+toronto,Yorkdale Shopping Centre,shopping,29.0,1.0,19,4.0,0.0
+toronto,Maple Leaf Gardens,landmark,83.0,0.7000000000000001,10,16.0,0.0
+toronto,CN Tower,landmark,377.0,0.9500000000000001,29,79.0,0.0
+toronto,Hockey Hall of Fame,culture,252.0,0.9500000000000001,28,28.0,0.0
+toronto,Art Gallery of Ontario,culture,209.0,0.9500000000000001,26,29.0,0.0
+toronto,Harbourfront Centre,landmark,149.0,0.44999999999999996,6,0.0,0.0
+toronto,Ripley's Aquarium of Canada,entertainment,157.0,0.9500000000000001,21,4.0,0.0
+toronto,Casa Loma,landmark,85.0,0.9500000000000001,18,20.0,0.0
+toronto,Nathan Phillips Square,landmark,346.0,0.7000000000000001,6,11.0,0.0
+toronto,Toronto Zoo,entertainment,40.0,0.8500000000000001,13,18.0,0.0
+toronto,Sunnyside Park,nature,15.0,0.7000000000000001,4,3.0,0.0
+toronto,BMO Field,entertainment,55.0,0.8500000000000001,11,45.0,0.0
+toronto,Centreville,entertainment,41.0,0.8500000000000001,5,4.0,0.0
+toronto,Sankofa Square,landmark,309.0,0.7500000000000001,15,19.0,0.0
+toronto,Toronto Islands,landmark,41.0,0.7000000000000001,9,16.0,0.0
+toronto,Kensington Market,landmark,212.0,0.7000000000000001,7,8.0,0.0
+osaka,堂山町,landmark,27.0,0.7000000000000001,10,4.0,0.0
+osaka,道頓堀,landmark,7.0,0.8500000000000001,19,21.0,0.0
+osaka,新世界,landmark,58.0,0.7000000000000001,7,13.0,0.0
+osaka,十三,landmark,13.0,0.8500000000000001,16,11.0,0.0
+osaka,アメリカ村,landmark,34.0,0.7000000000000001,17,7.0,0.0
+osaka,なんば,landmark,107.0,0.8500000000000001,21,3.0,0.0
+osaka,心斎橋,landmark,68.0,0.8500000000000001,18,10.0,0.0
+osaka,長居公園,landmark,7.0,0.7000000000000001,9,4.0,0.0
+osaka,ユニバーサル・スタジオ・ジャパン,entertainment,27.0,0.8500000000000001,32,27.0,0.0
+osaka,大阪城,history,128.0,1.0,60,47.0,0.0
+osaka,中之島公園,nature,31.0,0.7000000000000001,7,4.0,0.0
+osaka,HEP FIVE,landmark,65.0,0.8500000000000001,20,1.0,0.0
+osaka,本殿,landmark,17.0,0.7000000000000001,6,8.0,0.0
+osaka,天王寺公園,nature,14.0,0.8500000000000001,15,11.0,0.0
+osaka,靱公園,nature,8.0,0.9500000000000001,17,3.0,0.0
+osaka,住吉大社,religion,12.0,0.8500000000000001,38,18.0,0.0
+osaka,梅田スカイビル,landmark,84.0,0.8500000000000001,27,23.0,0.0
+osaka,Zepp なんば大阪,entertainment,3.0,0.3,7,0.0,0.0
+osaka,玉造稲荷神社,religion,1.0,0.7000000000000001,9,3.0,0.0
+osaka,天保山大観覧車,landmark,39.0,0.7000000000000001,10,4.0,0.0
+osaka,四天王寺,religion,20.0,0.8500000000000001,37,31.0,0.0
+osaka,天王寺動物園,entertainment,20.0,0.8500000000000001,17,10.0,0.0
+osaka,日本橋,landmark,17.0,0.7000000000000001,8,9.0,0.0
+osaka,飛田新地,landmark,2.0,0.7000000000000001,8,7.0,0.0
+osaka,住吉公園,nature,2.0,0.8500000000000001,17,4.0,0.0
+delhi,Connaught Place,landmark,24.0,0.7000000000000001,10,29.0,0.0
+delhi,Chandni Chowk,landmark,37.0,0.7000000000000001,8,22.0,0.0
+delhi,National Rail Museum,culture,4.0,0.8,9,13.0,0.0
+delhi,Lotus Temple,religion,45.0,0.8,24,55.0,0.0
+delhi,Raj Ghat,nature,22.0,0.7000000000000001,11,23.0,0.0
+delhi,Salimgarh Fort,history,1.0,0.7000000000000001,8,8.0,0.0
+delhi,National Zoological Park,entertainment,9.0,0.9500000000000001,11,8.0,0.0
+delhi,Lodhi Gardens,nature,23.0,0.7000000000000001,10,16.0,0.0
+delhi,Cathedral Church of The Redemption,religion,1.0,0.7000000000000001,8,4.0,0.0
+delhi,Safdarjung's Tomb,nature,13.0,0.7000000000000001,9,29.0,0.0
+delhi,Tughlakabad Fort,history,1.0,0.8,8,17.0,0.0
+delhi,Nizamuddin Dargah,religion,10.0,0.7000000000000001,10,16.0,0.0
+delhi,Jantar Mantar,history,29.0,0.8,14,19.0,0.0
+delhi,Red Fort,history,62.0,0.7000000000000001,29,75.0,0.0
+delhi,Jama Masjid,religion,97.0,0.9500000000000001,22,57.0,0.0
+delhi,Rashtrapati Bhavan,history,3.0,0.7,28,49.0,0.0
+delhi,India Gate,history,63.0,0.7500000000000001,41,50.0,0.0
+delhi,Qutb Minar,history,45.0,0.7000000000000001,18,71.0,0.0
+delhi,Swaminarayan's Akshardham Temple,religion,2.0,0.9500000000000001,33,35.0,0.0
+delhi,Qutub Minar Complex,landmark,64.0,0.7000000000000001,15,31.0,0.0
+delhi,Sri Bangla Sahib Gurudwara,religion,17.0,0.7000000000000001,15,21.0,0.0
+delhi,पुराना किला,history,9.0,0.7000000000000001,10,19.0,0.0
+delhi,National Museum,culture,15.0,0.9500000000000001,25,28.0,0.0
+perth,Elizabeth Quay,landmark,15.0,0.7000000000000001,13,2.0,0.0
+perth,Kings Park,landmark,2.0,0.7000000000000001,6,12.0,0.0
+perth,Perth,landmark,45.0,0.7000000000000001,11,7.0,0.0
+perth,Hyde Park,nature,6.0,0.7000000000000001,6,3.0,0.0
+perth,Supreme Court Gardens,nature,46.0,0.7000000000000001,4,2.0,0.0
+perth,WACA Ground,entertainment,5.0,0.7000000000000001,9,15.0,0.0
+perth,Queens Gardens,nature,1.0,0.7000000000000001,4,1.0,0.0
+perth,Stirling Gardens,nature,36.0,0.7000000000000001,6,3.0,0.0
+perth,Perth Town Hall,landmark,46.0,0.7000000000000001,11,2.0,0.0
+perth,Crown Resorts,entertainment,13.0,0.7000000000000001,7,7.0,0.0
+perth,State Library of Western Australia,culture,31.0,0.9500000000000001,25,8.0,0.0
+perth,HBF Park,entertainment,6.0,0.8500000000000001,13,20.0,0.0
+perth,Perth Concert Hall,entertainment,18.0,0.7000000000000001,6,2.0,0.0
+perth,Parliament House of Western Australia,landmark,8.0,0.6,11,3.0,0.0
+perth,RAC Arena,entertainment,16.0,0.9000000000000001,21,13.0,0.0
+perth,East Perth Power Station,landmark,4.0,0.7000000000000001,6,2.0,0.0
+perth,Russell Square,nature,10.0,0.7000000000000001,4,1.0,0.0
+perth,Elizabeth Quay Bus Station,landmark,18.0,0.8,26,2.0,0.0
+perth,Western Australian Museum Boola Bardip,culture,31.0,0.9500000000000001,28,5.0,0.0
+perth,Chinatown,landmark,12.0,0.7000000000000001,4,1.0,0.0
+melbourne,Melbourne,landmark,279.0,0.8500000000000001,97,178.0,0.0
+melbourne,Regent Theatre,entertainment,40.0,0.6,9,5.0,0.0
+melbourne,Courthouse Theatre,entertainment,11.0,0.44999999999999996,10,0.0,0.0
+melbourne,Playhouse Theatre,entertainment,7.0,0.3,3,0.0,0.0
+melbourne,La Mama Theatre,entertainment,21.0,0.6,7,3.0,0.0
+melbourne,IMAX Melbourne,entertainment,22.0,0.8500000000000001,15,1.0,0.0
+melbourne,CrossCulture Church of Christ,religion,40.0,0.44999999999999996,11,0.0,0.0
+melbourne,Fire Services Museum,culture,3.0,0.7,12,1.0,0.0
+melbourne,State Theatre,entertainment,42.0,0.44999999999999996,4,3.0,0.0
+melbourne,Conservatory Fountain,landmark,14.0,0.3,2,0.0,0.0
+melbourne,Flinders Street,landmark,158.0,0.9500000000000001,13,19.0,0.0
+melbourne,North Melbourne,landmark,10.0,0.8500000000000001,16,5.0,0.0
+melbourne,Newmarket,landmark,6.0,0.8500000000000001,14,3.0,0.0
+melbourne,Fitzroy Gardens,nature,13.0,0.7500000000000001,12,5.0,0.0
+melbourne,Murchison Square,nature,1.0,0.3,2,0.0,0.0
+melbourne,Royal Exhibition Building,history,32.0,0.8500000000000001,19,43.0,0.0
+melbourne,Melbourne Museum,culture,47.0,0.9500000000000001,23,19.0,0.0
+melbourne,Argyle Square,nature,8.0,0.3,2,0.0,0.0
+melbourne,Flagstaff Gardens,nature,8.0,0.7000000000000001,6,5.0,0.0
+melbourne,Treasury Gardens,nature,10.0,0.7000000000000001,8,4.0,0.0
+melbourne,Princes Park,nature,1.0,0.44999999999999996,3,2.0,0.0
+melbourne,The University High School,landmark,2.0,0.44999999999999996,13,3.0,0.0
+melbourne,The Royal Melbourne Hospital,landmark,9.0,0.6,14,4.0,0.0
+melbourne,State Netball Hockey Centre,landmark,2.0,0.44999999999999996,5,3.0,0.0
+melbourne,Fawkner Park,nature,3.0,0.7000000000000001,5,4.0,0.0
+melbourne,Saint Paul's Cathedral,religion,103.0,0.8500000000000001,30,11.0,0.0
+melbourne,Eureka Tower,landmark,36.0,0.8500000000000001,22,38.0,0.0
+melbourne,Immigration Museum,culture,28.0,0.9500000000000001,24,9.0,0.0
+melbourne,Malthouse Theatre,entertainment,6.0,0.8500000000000001,14,1.0,0.0
+melbourne,Melbourne Town Hall,history,137.0,0.8500000000000001,21,4.0,0.0
+melbourne,Athenaeum Theatre,entertainment,11.0,0.44999999999999996,6,8.0,0.0
+melbourne,Collins Street Baptist Church,religion,13.0,0.8500000000000001,10,2.0,0.0
+melbourne,Scots Church,religion,18.0,0.8500000000000001,15,2.0,0.0
+melbourne,Hamer Hall,entertainment,126.0,0.9000000000000001,13,2.0,0.0
+melbourne,University Square,nature,5.0,0.4,10,0.0,0.0
+melbourne,Royal Dental Hospital of Melbourne,landmark,3.0,0.44999999999999996,13,1.0,0.0
+melbourne,State Library Victoria,culture,100.0,0.7,22,19.0,0.0
+melbourne,Her Majesty's Theatre,entertainment,36.0,0.8500000000000001,15,2.0,0.0
+melbourne,Comedy Theatre,entertainment,19.0,0.8500000000000001,13,1.0,0.0
+melbourne,St Michael's Uniting Church,religion,41.0,0.8500000000000001,10,2.0,0.0
+melbourne,Ian Potter Centre: NGV Australia,culture,45.0,0.7,12,6.0,0.0
+melbourne,ACMI,culture,52.0,0.9500000000000001,18,5.0,0.0
+melbourne,Queen Victoria Gardens,nature,12.0,0.7000000000000001,5,1.0,0.0
+melbourne,Sidney Myer Music Bowl,landmark,17.0,0.8500000000000001,6,2.0,0.0
+melbourne,Parliament House,landmark,15.0,0.8500000000000001,21,8.0,0.0
+melbourne,Shrine of Remembrance,history,74.0,0.7000000000000001,12,16.0,0.0
+melbourne,Alexandra Gardens,nature,11.0,0.7000000000000001,4,1.0,0.0
+melbourne,Kings Domain,nature,4.0,0.7000000000000001,4,1.0,0.0
+melbourne,Government House,history,4.0,0.7000000000000001,9,4.0,0.0
+melbourne,Old Melbourne Gaol,landmark,34.0,1.0,15,8.0,0.0
+melbourne,Melbourne City Baths,landmark,33.0,0.9500000000000001,15,4.0,0.0
+melbourne,SEA LIFE Melbourne Aquarium,entertainment,42.0,0.9500000000000001,20,10.0,0.0
+melbourne,Batman Park,nature,15.0,0.7000000000000001,7,4.0,0.0
+melbourne,Macarthur Square,nature,5.0,0.3,4,0.0,0.0
+melbourne,Westgate Park,nature,3.0,0.6,9,2.0,0.0
+melbourne,Welsh Church,religion,16.0,0.44999999999999996,13,0.0,0.0
+melbourne,Carlton Gardens Primary School,landmark,5.0,0.44999999999999996,14,1.0,0.0
+melbourne,Melbourne Recital Centre,entertainment,10.0,0.65,15,2.0,0.0
+melbourne,Southbank Melbourne Theatre Company,landmark,6.0,0.8500000000000001,20,2.0,0.0
+melbourne,Point Park,nature,4.0,0.3,2,0.0,0.0
+melbourne,J.J. Holland Park,nature,2.0,0.8500000000000001,5,1.0,0.0
+melbourne,Docklands Park,nature,8.0,0.3,2,0.0,0.0
+melbourne,O'Brien Icehouse,landmark,1.0,0.9500000000000001,20,1.0,0.0
+melbourne,Royal Botanic Gardens,nature,29.0,0.9500000000000001,15,3.0,0.0
+melbourne,Australian Centre for Contemporary Art,culture,12.0,0.7,17,9.0,0.0
+melbourne,North Melbourne Recreation Reserve,nature,2.0,0.3,2,0.0,0.0
+melbourne,Rod Laver Arena,entertainment,37.0,0.8500000000000001,17,23.0,0.0
+melbourne,Princess Theatre,entertainment,41.0,0.8500000000000001,14,5.0,0.0
+melbourne,Chinese Museum,culture,13.0,0.7,13,4.0,0.0
+melbourne,St Francis' Church,religion,26.0,0.6,10,4.0,0.0
+melbourne,Birrarung Marr,nature,49.0,0.7000000000000001,6,2.0,0.0
+melbourne,Supreme Court of Victoria,landmark,8.0,0.8500000000000001,17,4.0,0.0
+melbourne,Old Treasury Building,landmark,23.0,0.7000000000000001,14,3.0,0.0
+melbourne,Melbourne Magistrates' Court,landmark,5.0,0.6,10,1.0,0.0
+melbourne,Royal Mint,landmark,8.0,0.44999999999999996,9,4.0,0.0
+melbourne,Freshwater Place,landmark,15.0,0.6,7,5.0,0.0
+melbourne,AAMI Park,entertainment,8.0,0.8500000000000001,17,27.0,0.0
+melbourne,Royal Women's Hospital,landmark,4.0,0.6,10,4.0,0.0
+melbourne,Melbourne Star Observation Wheel,landmark,16.0,0.44999999999999996,6,0.0,0.0
+melbourne,Queen Victoria Market,landmark,49.0,0.9500000000000001,19,9.0,0.0
+melbourne,Margaret Court Arena,entertainment,16.0,0.8500000000000001,16,11.0,0.0
+melbourne,Yarra Park,nature,2.0,0.8500000000000001,8,3.0,0.0
+melbourne,Saint Patrick's Cathedral,religion,22.0,0.7000000000000001,19,20.0,0.0
+melbourne,Lincoln Square,nature,11.0,0.4,11,0.0,0.0
+melbourne,Wesley Uniting Church,religion,20.0,0.8500000000000001,14,2.0,0.0
+melbourne,St Peter's Eastern Hill,religion,7.0,0.6,14,1.0,0.0
+melbourne,Wesley College St Kilda Road Campus,landmark,1.0,0.6,16,4.0,0.0
+melbourne,Melbourne Cricket Ground,entertainment,48.0,0.8500000000000001,22,47.0,0.0
+melbourne,Church of All Nations,religion,3.0,0.44999999999999996,11,1.0,0.0
+melbourne,Melbourne Park,landmark,11.0,0.8500000000000001,6,25.0,0.0
+melbourne,Epworth Freemasons,landmark,2.0,0.6,14,2.0,0.0
+melbourne,German Lutheran Trinity Church,religion,12.0,0.3,12,0.0,0.0
+melbourne,The Royal Victorian Eye & Ear Hospital,landmark,7.0,0.6,12,3.0,0.0
+melbourne,Melbourne City Synagogue,religion,3.0,0.8500000000000001,19,5.0,0.0
+melbourne,Holy Trinity Anglican Church,religion,1.0,0.3,11,0.0,0.0
+melbourne,Alfred Hospital,landmark,2.0,0.6,11,3.0,0.0
+melbourne,Melbourne Exhibition Centre,landmark,21.0,0.8500000000000001,14,3.0,0.0
+melbourne,Bishopscourt,landmark,1.0,0.7000000000000001,10,1.0,0.0
+melbourne,Melbourne Convention Centre,landmark,36.0,0.8500000000000001,14,3.0,0.0
+melbourne,Carlton Gardens,nature,42.0,0.7000000000000001,6,36.0,0.0
+melbourne,Flemington Bridge,landmark,6.0,0.44999999999999996,11,3.0,0.0
+melbourne,Parliament,landmark,29.0,0.8500000000000001,20,6.0,0.0
+melbourne,Melbourne Central,landmark,104.0,0.8500000000000001,22,6.0,0.0
+melbourne,Polly Woodside,history,25.0,0.7,13,6.0,0.0
+melbourne,Sandridge Bridge,landmark,69.0,0.7000000000000001,8,3.0,0.0
+melbourne,Melbourne University Community Garden,nature,21.0,0.3,7,0.0,0.0
+melbourne,RMIT University,landmark,17.0,0.8500000000000001,12,1.0,0.0
+melbourne,Cooks' Cottage,landmark,9.0,0.8500000000000001,17,10.0,0.0
+melbourne,Kensington Railway Station Stationeers,nature,6.0,0.3,3,0.0,0.0
+melbourne,St Mary's Anglican Church,religion,4.0,0.3,11,0.0,0.0
+melbourne,Carlton,landmark,5.0,0.7000000000000001,9,14.0,0.0
+melbourne,East Melbourne,landmark,7.0,0.7000000000000001,9,9.0,0.0
+melbourne,South Wharf,landmark,6.0,0.7000000000000001,9,2.0,0.0
+melbourne,North Melbourne,landmark,2.0,0.7000000000000001,9,9.0,0.0
+melbourne,Enterprize Park,nature,15.0,0.44999999999999996,3,0.0,0.0
+melbourne,South Yarra Presbyterian Church,religion,2.0,0.44999999999999996,10,0.0,0.0
+melbourne,Federation Square,landmark,85.0,0.9500000000000001,18,16.0,0.0
+melbourne,Crown Entertainment Complex,entertainment,43.0,0.8,15,0.0,0.0

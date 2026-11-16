@@ -119,7 +119,8 @@ def classify(tags: dict[str, str]) -> Rule | None:
         rule = _INDEX.get((key, value))
         if rule is not None and (best is None or _RULE_RANK[rule] < _RULE_RANK[best]):
             best = rule
-    if best is None and ("wikidata" in tags or "wikipedia" in tags):
-        if any(k in tags for k in _NOTABLE_KEYS) or tags.get("railway") == "station":
-            return NOTABLE
+    notable_entry = "wikidata" in tags or "wikipedia" in tags
+    physical_place = any(k in tags for k in _NOTABLE_KEYS) or tags.get("railway") == "station"
+    if best is None and notable_entry and physical_place:
+        return NOTABLE
     return best

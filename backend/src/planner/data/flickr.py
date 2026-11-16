@@ -34,9 +34,18 @@ CITIES: dict[str, CitySpec] = {
         CitySpec("osaka", "Osaka", "POI-Osak.csv", "userVisits-Osak.csv", "kansai"),
         CitySpec("delhi", "Delhi", "POI-Delh.csv", "userVisits-Delh-allPOI.csv", "northern-zone"),
         CitySpec("perth", "Perth", "POI-Pert.csv", "userVisits-Pert-allPOI.csv", "australia"),
-        CitySpec("melbourne", "Melbourne", "POI-Melb.csv", "userVisits-Melb-allPOI.csv", "australia", "cikm16"),
+        CitySpec(
+            "melbourne", "Melbourne", "POI-Melb.csv", "userVisits-Melb-allPOI.csv", "australia", "cikm16"
+        ),
     )
 }
+
+
+# The eight IJCAI'15 cities share one methodology (POIs are Wikipedia articles) and
+# form the main benchmark. Melbourne (CIKM'16) uses a municipal landmark register
+# with many everyday buildings, so it is kept as an out-of-distribution check.
+MAIN_CITIES: tuple[str, ...] = tuple(k for k, c in CITIES.items() if c.source == "ijcai15")
+EXTRA_CITIES: tuple[str, ...] = tuple(k for k, c in CITIES.items() if c.source != "ijcai15")
 
 
 def load_pois(city: str) -> pd.DataFrame:
@@ -76,8 +85,13 @@ def load_sequences(city: str, min_len: int = 1) -> pd.DataFrame:
         pois = list(dict.fromkeys(grp["flickr_id"].tolist()))
         if len(pois) >= min_len:
             out.append(
-                {"seq": seq, "user": grp["user"].iloc[0], "pois": pois,
-                 "start_ts": int(grp["ts"].iloc[0]), "end_ts": int(grp["ts"].iloc[-1])}
+                {
+                    "seq": seq,
+                    "user": grp["user"].iloc[0],
+                    "pois": pois,
+                    "start_ts": int(grp["ts"].iloc[0]),
+                    "end_ts": int(grp["ts"].iloc[-1]),
+                }
             )
     return pd.DataFrame(out)
 
