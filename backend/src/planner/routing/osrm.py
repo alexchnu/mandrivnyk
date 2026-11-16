@@ -46,13 +46,21 @@ def table(
                 if not same:
                     params["sources"] = ";".join(str(k) for k in range(len(rows)))
                     params["destinations"] = ";".join(str(len(rows) + k) for k in range(len(cols)))
-                for attempt in range(5):
-                    resp = http.get(f"{base_url}/table/v1/foot/{coords}", params=params)
-                    if resp.status_code == 200 and resp.json().get("code") == "Ok":
-                        break
+                problem = "no response"
+                for attempt in range(6):
+                    try:
+                        resp = http.get(f"{base_url}/table/v1/foot/{coords}", params=params)
+                        if resp.status_code == 200 and resp.json().get("code") == "Ok":
+                            break
+                        problem = f"HTTP {resp.status_code} {resp.text[:200]}"
+                    except (
+                        httpx.HTTPError,
+                        ValueError,
+                    ) as exc:  # the public server drops connections under load
+                        problem = repr(exc)
                     time.sleep(2 ** (attempt + 1))
                 else:
-                    raise RuntimeError(f"OSRM table failed: HTTP {resp.status_code} {resp.text[:200]}")
+                    raise RuntimeError(f"OSRM table failed: {problem}")
                 data = resp.json()
                 duration[np.ix_(rows, cols)] = np.array(data["durations"], float)
                 distance[np.ix_(rows, cols)] = np.array(data["distances"], float)

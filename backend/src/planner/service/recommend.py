@@ -189,7 +189,7 @@ async def recommend(session: AsyncSession, req: RecommendRequest) -> RecommendRe
     stale = area.source == "overpass" and area.fetched_at < datetime.now(UTC) - timedelta(
         days=get_settings().area_ttl_days
     )
-    status = "stale" if stale else "fresh"
+    status = "partial" if getattr(area, "partial", False) else "stale" if stale else "fresh"
     model = pois[0].relevance_model if pois else "none"
     if not pois:
         return RecommendResponse(

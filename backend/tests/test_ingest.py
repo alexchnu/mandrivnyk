@@ -101,3 +101,16 @@ async def test_enrichment_upgrades_model_inputs(session, external, engine, monke
 
 async def _noop():
     return None
+
+
+async def test_overlapping_area_is_served_as_partial_and_failures_are_not_hammered(session, city, external):
+    """A request reaching beyond the imported region must not hang or fail when Overpass is down."""
+    external["overpass"].mock(side_effect=httpx.ConnectError("down"))
+    lat, lon = CENTRE[0] + 0.04, CENTRE[1]  # ~4.4 km north: a 4 km circle sticks out of the 6 km region
+    area = await ingest.ensure_area(session, lat, lon, 4000.0)
+    assert area.id == city.id and area.partial is True
+    again = await ingest.ensure_area(session, lat, lon, 4000.0)
+    assert again.id == city.id
+    assert external["overpass"].call_count == 1  # second request fails fast, no new download attempt
+    with pytest.raises(ProviderError):  # a place nothing is known about still reports the outage
+        await ingest.ensure_area(session, 10.0, 10.0, 3000.0)

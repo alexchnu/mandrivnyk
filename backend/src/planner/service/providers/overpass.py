@@ -44,27 +44,31 @@ def parse_elements(elements: list[dict]) -> list[dict]:
     return rows
 
 
-async def fetch_rows(lat: float, lon: float, radius_m: float) -> list[dict]:
-    """Try every configured mirror in turn; raise ``ProviderError`` when all fail."""
-    query = build_query(lat, lon, radius_m)
+async def fetch_rows(lat: float, lon: float, radius_m: float, budget_s: float = 45.0) -> list[dict]:
+    """Try every configured mirror in turn within a total time budget.
+
+    Raises ``ProviderError`` when no mirror answers: a request must fail in
+    bounded time instead of hanging while the public servers are overloaded.
+    """
+    query = build_query(lat, lon, radius_m, timeout_s=25)
     errors: list[str] = []
+    deadline = asyncio.get_running_loop().time() + budget_s
     for url in get_settings().overpass_urls:
-        for attempt in range(2):
-            try:
-                resp = await client().post(url, data={"data": query}, timeout=60)
-            except httpx.HTTPError as exc:
-                errors.append(f"{url}: {type(exc).__name__}")
-                break
-            if resp.status_code == 200:
-                try:
-                    return parse_elements(resp.json().get("elements", []))
-                except ValueError:
-                    errors.append(f"{url}: invalid JSON")
-                    break
-            errors.append(f"{url}: HTTP {resp.status_code}")
-            if resp.status_code in (429, 504) and attempt == 0:
-                await asyncio.sleep(3)
-                continue
+        remaining = deadline - asyncio.get_running_loop().time()
+        if remaining < 3:
+            errors.append("time budget exhausted")
             break
+        try:
+            resp = await client().post(url, data={"data": query}, timeout=min(30.0, remaining))
+        except httpx.HTTPError as exc:
+            errors.append(f"{url}: {type(exc).__name__}")
+            continue
+        if resp.status_code == 200:
+            try:
+                return parse_elements(resp.json().get("elements", []))
+            except ValueError:
+                errors.append(f"{url}: invalid JSON")
+                continue
+        errors.append(f"{url}: HTTP {resp.status_code}")
     log.warning("overpass unavailable: %s", "; ".join(errors))
     raise ProviderError("Map data service is temporarily unavailable")
