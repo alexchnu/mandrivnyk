@@ -98,7 +98,7 @@ class RecommendResponse(BaseModel):
     items: list[PoiOut]
     total_candidates: int
     model: str
-    data_status: Literal["fresh", "stale"]
+    data_status: Literal["fresh", "stale", "partial"]
     enrichment: Literal["none", "pending", "done"]
 
 

@@ -95,6 +95,7 @@ def _isolate(monkeypatch):
     from planner.service.api import auth, discovery
 
     monkeypatch.setattr(ingest, "schedule_enrichment", lambda area_id: None)
+    ingest._failed_at.clear()
     auth.limiter.reset()
     discovery._search_limiter.reset()
 

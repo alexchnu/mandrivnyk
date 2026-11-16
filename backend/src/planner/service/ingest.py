@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import time
 from datetime import UTC, datetime, timedelta
 
 import pandas as pd
@@ -23,6 +24,8 @@ from .providers.http import ProviderError, client
 
 log = logging.getLogger(__name__)
 _locks: dict[tuple[int, int], asyncio.Lock] = {}
+_failed_at: dict[tuple[int, int], float] = {}
+_RETRY_AFTER_S = 60.0
 _background: set[asyncio.Task] = set()
 
 
@@ -235,8 +238,29 @@ def schedule_enrichment(area_id: int) -> None:
     task.add_done_callback(_background.discard)
 
 
+async def _partial_area(session: AsyncSession, lat: float, lon: float, radius_m: float) -> Area | None:
+    """A loaded region that at least overlaps the requested circle and has places inside it."""
+    has_places = await session.scalar(select(Poi.id).where(within(lat, lon, radius_m)).limit(1))
+    if has_places is None:
+        return None
+    areas = (await session.scalars(select(Area).order_by(Area.fetched_at.desc()))).all()
+    overlapping = [a for a in areas if float(haversine_m(lat, lon, a.lat, a.lon)) < a.radius_m + radius_m]
+    if not overlapping:
+        return None
+    best = min(overlapping, key=lambda a: float(haversine_m(lat, lon, a.lat, a.lon)))
+    best.partial = True  # transient flag for the response; not a database column
+    return best
+
+
 async def ensure_area(session: AsyncSession, lat: float, lon: float, radius_m: float) -> Area:
-    """Make sure POIs around the point are loaded; download them when needed."""
+    """Make sure POIs around the point are loaded; download them when needed.
+
+    When the map data service is down the best data already stored is served:
+    a stale region that covers the circle, or else a region that overlaps it
+    (flagged ``partial``). Only when nothing is known about the place does the
+    request fail. A failed download is not retried for ``_RETRY_AFTER_S`` seconds
+    so that every request does not wait for the same time-out.
+    """
     area = await find_area(session, lat, lon, radius_m, fresh_only=True)
     if area is not None:
         return area
@@ -248,13 +272,20 @@ async def ensure_area(session: AsyncSession, lat: float, lon: float, radius_m: f
             return area
         fetch_radius = max(radius_m + 1000.0, get_settings().area_radius_km * 1000.0)
         try:
+            if time.monotonic() - _failed_at.get(key, -_RETRY_AFTER_S) < _RETRY_AFTER_S:
+                raise ProviderError("Map data service is temporarily unavailable")
             rows = await overpass.fetch_rows(lat, lon, fetch_radius)
         except ProviderError:
-            stale = await find_area(session, lat, lon, radius_m, fresh_only=False)
-            if stale is not None:
-                log.warning("serving stale area %s: map data service is down", stale.id)
-                return stale
+            _failed_at.setdefault(key, time.monotonic())
+            if time.monotonic() - _failed_at[key] >= _RETRY_AFTER_S:
+                _failed_at[key] = time.monotonic()
+            fallback = await find_area(session, lat, lon, radius_m, fresh_only=False)
+            fallback = fallback or await _partial_area(session, lat, lon, radius_m)
+            if fallback is not None:
+                log.warning("map data service is down: serving stored area %s", fallback.id)
+                return fallback
             raise
+        _failed_at.pop(key, None)
         area = await ingest_rows(session, rows, lat, lon, fetch_radius, "overpass")
         schedule_enrichment(area.id)
         return area

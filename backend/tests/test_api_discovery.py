@@ -155,3 +155,11 @@ async def test_feedback_is_stored(api, session, city):
     assert resp.status_code == 204
     assert await session.scalar(select(func.count()).select_from(Feedback)) == 1  # unknown place ignored
     assert (await api.post("/api/v1/feedback", json=[])).status_code == 422
+
+
+async def test_partial_data_is_flagged(api, city, external):
+    external["overpass"].mock(side_effect=httpx.ConnectError("down"))
+    body = (
+        await api.post("/api/v1/recommendations", json={**REQ, "lat": CENTRE[0] + 0.04, "radius_km": 4})
+    ).json()
+    assert body["data_status"] == "partial" and len(body["items"]) > 0
