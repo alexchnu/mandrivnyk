@@ -1,27 +1,27 @@
 signal     manual  n_tags  pageviews  sitelinks
 city                                           
-all         0.179   0.391      0.365      0.346
-budapest    0.291   0.526      0.538      0.444
-delhi       0.029   0.475      0.668      0.669
+all         0.162   0.409      0.380      0.354
+budapest    0.287   0.526      0.538      0.444
+delhi       0.035   0.486      0.653      0.667
 edinburgh   0.308   0.050      0.249      0.109
 glasgow     0.077   0.374     -0.060     -0.047
-melbourne   0.483   0.413      0.451      0.436
-osaka       0.248   0.370      0.219      0.248
-perth       0.242   0.311     -0.133     -0.051
-toronto     0.248   0.436      0.444      0.488
-vienna     -0.170   0.497      0.686      0.636
+melbourne   0.447   0.448      0.576      0.499
+osaka       0.295   0.458      0.301      0.323
+perth       0.203   0.136     -0.130     -0.085
+toronto     0.308   0.549      0.460      0.520
+vienna     -0.268   0.528      0.686      0.636
 city    signal   n   rho   p  ci_lo  ci_hi
- all    manual 207 0.179 NaN  0.045  0.309
- all    n_tags 207 0.391 NaN  0.265  0.511
- all sitelinks 207 0.346 NaN  0.203  0.467
- all pageviews 207 0.365 NaN  0.225  0.488
+ all    manual 199 0.162 NaN  0.017  0.294
+ all    n_tags 199 0.409 NaN  0.276  0.528
+ all sitelinks 199 0.354 NaN  0.206  0.483
+ all pageviews 199 0.380 NaN  0.238  0.502
      city  candidates  visited  with_wikidata  share_wikidata  manual_levels  share_at_min_score  rho_manual_vs_pageviews  rho_sitelinks_vs_pageviews
- budapest        8336       37           1260           0.151             15               0.438                    0.214                       0.770
-    delhi        3343       23            485           0.145             15               0.744                    0.148                       0.657
-edinburgh        3897       25            584           0.150             15               0.387                    0.184                       0.682
-  glasgow        4540       20            845           0.186             14               0.546                    0.336                       0.572
-melbourne        6122      118            582           0.095             15               0.531                    0.403                       0.654
-    osaka       57598       25           6148           0.107             15               0.793                    0.215                       0.700
-    perth        4135       20            639           0.155             15               0.511                    0.463                       0.617
-  toronto       12077       29           1373           0.114             15               0.551                    0.201                       0.575
-   vienna       10202       28           1546           0.152             15               0.239                    0.272                       0.687
+ budapest        8033       37            974           0.121             15               0.454                    0.274                       0.774
+    delhi        3181       22            331           0.104             14               0.782                    0.138                       0.713
+edinburgh        3650       25            349           0.096             15               0.413                    0.190                       0.779
+  glasgow        4195       20            513           0.122             14               0.591                    0.430                       0.625
+melbourne        5932      107            420           0.071             15               0.548                    0.433                       0.610
+    osaka       54696       23           3538           0.065             15               0.835                    0.288                       0.744
+    perth        3874       18            435           0.112             15               0.545                    0.586                       0.544
+  toronto       11493       26            879           0.076             15               0.579                    0.232                       0.615
+   vienna        9861       28           1285           0.130             15               0.248                    0.342                       0.717

@@ -1,6 +1,6 @@
 {
- "n_candidates": 56411,
- "n_positive": 206,
+ "n_candidates": 51266,
+ "n_positive": 198,
  "cities": [
   "edinburgh",
   "glasgow",
@@ -14,5 +14,5 @@
  "extra_cities": [
   "melbourne"
  ],
- "n_candidates_extra": 2263
+ "n_candidates_extra": 2073
 }
