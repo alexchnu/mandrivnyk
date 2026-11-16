@@ -43,6 +43,6 @@ show("E3 tests", pd.read_csv(R / "e3_tests.csv"))
 show("E3 interactive", pd.read_csv(R / "e3_interactive_summary.csv"))
 show("E4 ordering", pd.read_csv(R / "e4_ordering_summary.csv"))
 show("E4 by size", pd.read_csv(R / "e4_ordering_by_size.csv"))
-for name in ("e4_toptw_summary.csv", "e4_toptw_gain.csv", "perf.csv"):
+for name in ("e4_toptw_overall.csv", "e4_toptw_summary.csv", "e4_toptw_gain.csv", "perf.csv"):
     if (R / name).exists():
         show(name, pd.read_csv(R / name))

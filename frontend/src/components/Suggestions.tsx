@@ -180,6 +180,11 @@ export function Suggestions({ city, stops, onItems }: Props) {
         {query.isSuccess && (
           <>
             {enriching && <p className="notice">{t('suggest.enriching')}</p>}
+            {query.data.data_status !== 'fresh' && (
+              <p className="notice" role="status">
+                {t(query.data.data_status === 'partial' ? 'suggest.partial' : 'suggest.stale')}
+              </p>
+            )}
             {visible.length > 0 ? (
               <ul className="cards">
                 {visible.map((poi, rank) => (

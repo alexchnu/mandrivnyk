@@ -115,7 +115,7 @@ def intervals_for_day(week: Week | None, weekday: int) -> list[Interval] | None:
     if week is None:
         return None
     spans = list(week.get(weekday, []))
-    for start, end in week.get((weekday - 1) % 7, []):
+    for _start, end in week.get((weekday - 1) % 7, []):
         if end > 1440:
             spans.append((0, end - 1440))
     return sorted(spans)

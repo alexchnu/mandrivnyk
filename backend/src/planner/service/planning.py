@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
+import itertools
 import logging
 from datetime import timedelta
 
@@ -14,7 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .. import hours
 from ..geo import distance_matrix_m
 from ..routing import order as ordering
-from ..routing.toptw import Stop, Visit, ortools_plan, simulate_day
+from ..routing.toptw import Stop, Visit, hybrid_plan, simulate_day
 from .config import get_settings
 from .models import HttpCache, Poi, WalkLeg
 from .providers import osrm
@@ -171,7 +173,7 @@ async def build_plan(session: AsyncSession, req: PlanRequest, lang: str = "uk") 
         total = 0.0
         for seq in days:
             path = ([depot] if depot is not None else []) + seq
-            total += sum(travel_min[a, b] for a, b in zip(path[:-1], path[1:], strict=True))
+            total += sum(travel_min[a, b] for a, b in itertools.pairwise(path))
         return float(total)
 
     unscheduled: list[int] = []
@@ -186,13 +188,16 @@ async def build_plan(session: AsyncSession, req: PlanRequest, lang: str = "uk") 
             ]
             best = [
                 user_nodes[i - offset] if has_depot else user_nodes[i]
-                for i in _shortest_order(sub, has_depot)
+                for i in await asyncio.to_thread(_shortest_order, sub, has_depot)
             ]
             checked = simulate_day(best, stops, travel_min, 0, day_start, day_end, depot)
             if all(issue is None for _, issue in checked):
                 day_orders = [best]
         if not day_orders:
-            plan = ortools_plan(stops, travel_min, req.days, day_start, day_end, depot, time_limit_s=1.5)
+            # the solvers are CPU-bound: a worker thread keeps the event loop free for other requests
+            plan = await asyncio.to_thread(
+                hybrid_plan, stops, travel_min, req.days, day_start, day_end, depot, time_limit_s=1.5
+            )
             day_orders = [[v.stop for v in day] for day in plan.days]
             unscheduled = [i for i in plan.skipped if i in set(user_nodes)]
         if req.days == 1 and not unscheduled:

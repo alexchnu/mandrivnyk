@@ -14,7 +14,10 @@ export default defineConfig({
     viewport: { width: 1440, height: 900 },
     locale: 'uk-UA',
     timezoneId: 'Europe/Kyiv',
-    launchOptions: process.env.PW_CHROMIUM ? { executablePath: process.env.PW_CHROMIUM } : {},
+    launchOptions: {
+      args: ['--lang=uk-UA'], // native date and time inputs follow the browser language
+      ...(process.env.PW_CHROMIUM ? { executablePath: process.env.PW_CHROMIUM } : {}),
+    },
     screenshot: 'only-on-failure',
   },
 })

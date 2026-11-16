@@ -1,3 +1,5 @@
+import itertools
+
 import httpx
 
 from .conftest import CENTRE
@@ -27,7 +29,7 @@ async def test_timetable_is_consistent(api, city):
     ).json()
     visits = plan["days"][0]["visits"]
     assert visits[0]["arrive"] == 540 and visits[0]["walk_minutes"] == 0
-    for prev, cur in zip(visits[:-1], visits[1:], strict=True):
+    for prev, cur in itertools.pairwise(visits):
         assert cur["arrive"] == prev["leave"] + round(cur["walk_minutes"])
         assert cur["start"] >= cur["arrive"] and cur["leave"] - cur["start"] == cur["poi"]["visit_minutes"]
 
@@ -112,6 +114,21 @@ async def test_routing_outage_falls_back_to_estimates(api, city, external):
     assert plan["routed"] is False and plan["total_walk_minutes"] > 0
     assert {"code": "estimated_walk", "poi_id": None, "day": None, "minutes": None} in plan["warnings"]
     assert sorted(v["poi"]["id"] for v in plan["days"][0]["visits"]) == sorted(SIGHTS)
+
+
+async def test_routing_outage_is_not_retried_for_every_plan(api, city, external):
+    """Circuit breaker: after one failure the routing server is left alone for a while."""
+    external["osrm_table"].mock(side_effect=httpx.ReadTimeout("slow"))
+    for _ in range(3):
+        plan = (await api.post("/api/v1/plans", json={"stops": stops(SIGHTS)})).json()
+        assert plan["routed"] is False
+    assert external["osrm_table"].call_count == 1 and external["osrm_route"].call_count == 0
+
+
+async def test_rate_limited_routing_is_not_hammered(api, city, external):
+    external["osrm_table"].mock(return_value=httpx.Response(429, json={"message": "Too Many Requests"}))
+    plan = (await api.post("/api/v1/plans", json={"stops": stops(SIGHTS)})).json()
+    assert plan["routed"] is False and external["osrm_table"].call_count == 1
 
 
 async def test_walking_times_are_cached(api, city, external):

@@ -50,6 +50,8 @@ const uk = {
   'suggest.readMore': 'Вікіпедія',
   'suggest.website': 'Сайт',
   'suggest.enriching': 'Уточнюємо популярність місць за даними Вікіпедії…',
+  'suggest.partial': 'Сервіс картографічних даних зараз недоступний, тому показано лише місця, збережені раніше. Список може бути неповним.',
+  'suggest.stale': 'Не вдалося оновити дані міста, показано збережену раніше версію.',
 
   'reason.wiki_languages': 'Вікіпедія {n} мовами',
   'reason.has_article': 'Є стаття у Вікіпедії',
@@ -200,6 +202,8 @@ const en: Record<Key, string | string[]> = {
   'suggest.radius': 'Search radius',
   'suggest.openOnly': 'Open now only',
   'suggest.filters': 'Filters',
+  'suggest.partial': 'The map data service is unavailable, so only places saved earlier are shown. The list may be incomplete.',
+  'suggest.stale': 'City data could not be refreshed; a previously saved version is shown.',
   'suggest.allCategories': 'All categories',
   'suggest.readMore': 'Wikipedia',
   'suggest.website': 'Website',

@@ -21,6 +21,8 @@ import pandas as pd
 from ..data.paths import RESULTS_DIR
 from ..metrics import bootstrap_ci
 
+OSRM_PAUSE_S = 2.5  # spacing of requests that make the service call the public routing server
+
 CITIES = {
     "Чернівці": (48.2921, 25.9358),
     "Львів": (49.8419, 24.0315),
@@ -33,7 +35,13 @@ CITIES = {
 async def timed(client: httpx.AsyncClient, method: str, url: str, **kwargs) -> tuple[float, int]:
     start = time.perf_counter()
     resp = await client.request(method, url, **kwargs)
-    return (time.perf_counter() - start) * 1000.0, resp.status_code
+    elapsed = (time.perf_counter() - start) * 1000.0
+    if url.endswith("/plans") and resp.status_code == 200:
+        _routed.append(bool(resp.json()["routed"]))
+    return elapsed, resp.status_code
+
+
+_routed: list[bool] = []  # whether the plans of the current scenario used real walking paths
 
 
 def summarise(name: str, samples: list[float], errors: int, extra: dict | None = None) -> dict:
@@ -47,13 +55,20 @@ def summarise(name: str, samples: list[float], errors: int, extra: dict | None =
 
 
 async def sequential(
-    client, name: str, calls: list[tuple[str, str, dict]], extra: dict | None = None
+    client, name: str, calls: list[tuple[str, str, dict]], extra: dict | None = None, pause_s: float = 0.0
 ) -> dict:
+    """Issue the calls one by one; ``pause_s`` spaces out requests that reach a public server."""
     samples, errors = [], 0
+    _routed.clear()
     for method, url, kwargs in calls:
+        if pause_s:
+            await asyncio.sleep(pause_s)
         ms, status = await timed(client, method, url, **kwargs)
         samples.append(ms)
         errors += status >= 400
+    extra = dict(extra or {})
+    if _routed:
+        extra["routed_share"] = float(np.mean(_routed))
     return summarise(name, samples, errors, extra)
 
 
@@ -115,10 +130,13 @@ async def main_async(base: str, n: int) -> None:
         lat, lon = CITIES["Львів"]
         body = {"lat": lat, "lon": lon, "radius_km": 3, "limit": 30, "lang": "uk", "method": "top_k"}
         ids = [p["id"] for p in (await client.post("/api/v1/recommendations", json=body)).json()["items"]]
+        # The public routing server must not be flooded: every scenario uses a small fixed set of
+        # requests. The first pass may call OSRM (path geometry of a new order); repeated passes are
+        # answered from the cache and measure the server's own work.
         for size in (5, 10, 15):
             for mode in ("keep_order", "optimize"):
                 calls = []
-                for _ in range(max(n // 4, 20)):
+                for _ in range(12):
                     chosen = rng.choice(ids, size=size, replace=False).tolist()
                     plan = {
                         "stops": [{"poi_id": i} for i in chosen],
@@ -126,17 +144,20 @@ async def main_async(base: str, n: int) -> None:
                         "start_date": "2026-11-18",
                     }
                     calls.append(("POST", "/api/v1/plans", {"json": plan}))
-                # the first pass fills the cache of walking legs; the second pass is the steady state
-                cold = await sequential(client, f"plan {mode}, {size} stops (first request)", calls[:10])
-                warm = await sequential(client, f"plan {mode}, {size} stops", calls, {"stops": size})
+                cold = await sequential(
+                    client, f"plan {mode}, {size} stops (first request)", calls[:4], pause_s=OSRM_PAUSE_S
+                )
+                await sequential(client, "warm-up", calls[4:], pause_s=OSRM_PAUSE_S)
+                warm = await sequential(client, f"plan {mode}, {size} stops", calls * 5, {"stops": size})
                 rows += [cold, warm]
         multi = []
-        for _ in range(20):
+        for _ in range(10):
             chosen = rng.choice(ids, size=15, replace=False).tolist()
             plan = {"stops": [{"poi_id": i} for i in chosen], "mode": "optimize", "days": 3,
                     "start_date": "2026-11-16", "day_end": "15:00"}  # fmt: skip
             multi.append(("POST", "/api/v1/plans", {"json": plan}))
-        rows.append(await sequential(client, "plan optimize, 15 stops, 3 days (time windows)", multi))
+        await sequential(client, "warm-up", multi, pause_s=OSRM_PAUSE_S)
+        rows.append(await sequential(client, "plan optimize, 15 stops, 3 days (time windows)", multi * 3))
 
         for level in (1, 4, 16, 64):
             rows.append(

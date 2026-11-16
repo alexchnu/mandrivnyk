@@ -1,4 +1,4 @@
-"""E4b: multi-day planning with opening hours - greedy insertion vs OR-Tools.
+"""E4b: multi-day planning with opening hours - greedy insertion, iterated local search, OR-Tools.
 
 Instances are built from real data: the most relevant sights of every benchmark
 city (relevance = output of the deployed model), their real opening hours from
@@ -22,7 +22,7 @@ from ..data.paths import PROCESSED_DIR, RESULTS_DIR
 from ..geo import haversine_m
 from ..ranking.features import density_centre
 from ..routing.osrm import table
-from ..routing.toptw import Stop, greedy_plan, ortools_plan
+from ..routing.toptw import Stop, greedy_plan, hybrid_plan, ils_plan, ortools_plan, profit_upper_bound
 
 RADIUS_M = 3000.0
 SIZES = (20, 40, 60)
@@ -64,39 +64,52 @@ def main() -> None:
                 args = (day_stops, minutes, days, DAY_START, DAY_END)
                 solvers = {
                     "greedy": partial(greedy_plan, *args),
-                    "ortools_1s": partial(ortools_plan, *args, time_limit_s=1.0),
-                    "ortools_5s": partial(ortools_plan, *args, time_limit_s=5.0),
+                    "ortools_cold_1s": partial(
+                        ortools_plan, *args, time_limit_s=1.0, warm_start=False, lns=False
+                    ),
+                    "ortools_cold_5s": partial(
+                        ortools_plan, *args, time_limit_s=5.0, warm_start=False, lns=False
+                    ),
+                    "ortools_warm_1s": partial(ortools_plan, *args, time_limit_s=1.0),
+                    "ils_1s": partial(ils_plan, *args, time_limit_s=1.0),
+                    "ils_5s": partial(ils_plan, *args, time_limit_s=5.0),
+                    "hybrid_1.5s": partial(hybrid_plan, *args, time_limit_s=1.5),
                 }
+                bound = profit_upper_bound(day_stops, minutes, days, DAY_START, DAY_END)
                 for name, solve in solvers.items():
                     t0 = time.perf_counter()
                     plan = solve()
                     elapsed = time.perf_counter() - t0
                     rows.append({
                         "city": city, "n": n, "days": days, "solver": name, "profit": plan.profit(day_stops),
-                        "profit_share": plan.profit(day_stops) / total, "stops": len(plan.visited),
+                        "profit_share": plan.profit(day_stops) / total, "bound_share": plan.profit(day_stops) / bound, "stops": len(plan.visited),
                         "walk_min": plan.travel_min(minutes), "time_s": elapsed, "hours_share": hours_share,
                     })  # fmt: skip
             print(city, n, "done")
     df = pd.DataFrame(rows)
     df.to_csv(RESULTS_DIR / "e4_toptw.csv", index=False)
     wide = df.pivot_table(index=["city", "n", "days"], columns="solver", values="profit")
-    gain = pd.DataFrame({
-        "gain_1s_pct": (wide["ortools_1s"] / wide["greedy"] - 1) * 100,
-        "gain_5s_pct": (wide["ortools_5s"] / wide["greedy"] - 1) * 100,
-    }).reset_index()  # fmt: skip
+    others = [c for c in wide.columns if c != "greedy"]
+    gain = pd.DataFrame({f"{c}": (wide[c] / wide["greedy"] - 1) * 100 for c in others}).reset_index()
     summary = df.groupby(["n", "days", "solver"]).agg(
-        profit_share=("profit_share", "mean"), stops=("stops", "mean"), walk_min=("walk_min", "mean"), time_s=("time_s", "mean")
+        profit_share=("profit_share", "mean"), bound_share=("bound_share", "mean"), stops=("stops", "mean"), walk_min=("walk_min", "mean"), time_s=("time_s", "mean")
     ).reset_index()  # fmt: skip
     summary.to_csv(RESULTS_DIR / "e4_toptw_summary.csv", index=False)
-    gains = gain.groupby(["n", "days"])[["gain_1s_pct", "gain_5s_pct"]].agg(["mean", "min", "max"])
+    gains = gain.groupby(["n", "days"])[others].agg(["mean", "min", "max"])
     gains.to_csv(RESULTS_DIR / "e4_toptw_gain.csv")
+    overall = pd.DataFrame({
+        "mean_gain_pct": gain[others].mean(), "min_gain_pct": gain[others].min(), "max_gain_pct": gain[others].max(),
+        "worse_than_greedy": (gain[others] < -1e-6).sum(), "better_than_greedy": (gain[others] > 1e-6).sum(),
+        "instances": len(gain),
+    })  # fmt: skip
+    overall["bound_share"] = df.groupby("solver")["bound_share"].mean()
+    overall.loc["greedy"] = [0, 0, 0, 0, 0, len(gain), df[df.solver == "greedy"]["bound_share"].mean()]
+    overall.to_csv(RESULTS_DIR / "e4_toptw_overall.csv")
     pd.set_option("display.width", 200)
     print(summary.round(3).to_string(index=False))
     print(gains.round(2).to_string())
     print("share of stops with parsed opening hours:", round(df["hours_share"].mean(), 3))
-    print(
-        "ortools worse than greedy in", int((gain["gain_5s_pct"] < -1e-6).sum()), "of", len(gain), "instances"
-    )
+    print(overall.round(3).to_string())
 
 
 if __name__ == "__main__":

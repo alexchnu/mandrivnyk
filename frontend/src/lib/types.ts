@@ -66,7 +66,7 @@ export interface RecommendResponse {
   items: Poi[]
   total_candidates: number
   model: string
-  data_status: 'fresh' | 'stale'
+  data_status: 'fresh' | 'stale' | 'partial'
   enrichment: 'none' | 'pending' | 'done'
 }
 

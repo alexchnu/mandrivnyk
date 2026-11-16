@@ -11,10 +11,13 @@ and an OR-Tools routing model with optional (prize-collecting) nodes.
 from __future__ import annotations
 
 import itertools
+import time
 from dataclasses import dataclass, field
 
 import numpy as np
 from ortools.constraint_solver import pywrapcp, routing_enums_pb2
+
+from .order import two_opt
 
 Interval = tuple[int, int]
 PROFIT_UNIT = 100_000  # solver cost of skipping the most valuable stop
@@ -106,12 +109,19 @@ def greedy_plan(
     day_start: int = 9 * 60,
     day_end: int = 19 * 60,
     depot: int | None = None,
+    initial: list[list[int]] | None = None,
 ) -> Plan:
     """Cheapest-insertion heuristic: repeatedly add the stop with the best
-    profit per extra minute, mandatory stops first."""
-    orders: list[list[int]] = [[] for _ in range(n_days)]
-    scheds: list[list[Visit]] = [[] for _ in range(n_days)]
+    profit per extra minute, mandatory stops first.
+
+    ``initial`` are feasible day orders to extend instead of starting from empty days."""
+    orders: list[list[int]] = [list(o) for o in initial] if initial else [[] for _ in range(n_days)]
+    scheds: list[list[Visit]] = [
+        schedule_day(o, stops, travel, d, day_start, day_end, depot) or [] for d, o in enumerate(orders)
+    ]
+    orders = [[v.stop for v in day] for day in scheds]
     remaining = set(range(len(stops))) - ({depot} if depot is not None else set())
+    remaining -= {i for o in orders for i in o}
     while remaining:
         best = None  # (key, stop, day, position, schedule)
         for i in remaining:
@@ -120,7 +130,7 @@ def greedy_plan(
                     continue
                 base = _day_duration(scheds[d], day_start)
                 for pos in range(len(orders[d]) + 1):
-                    cand = orders[d][:pos] + [i] + orders[d][pos:]
+                    cand = [*orders[d][:pos], i, *orders[d][pos:]]
                     sched = schedule_day(cand, stops, travel, d, day_start, day_end, depot)
                     if sched is None:
                         continue
@@ -137,6 +147,56 @@ def greedy_plan(
     return Plan(scheds, sorted(remaining))
 
 
+def ils_plan(
+    stops: list[Stop],
+    travel: np.ndarray,
+    n_days: int,
+    day_start: int = 9 * 60,
+    day_end: int = 19 * 60,
+    depot: int | None = None,
+    time_limit_s: float = 1.0,
+    seed: int = 0,
+) -> Plan:
+    """Iterated local search for the TOPTW in the spirit of Vansteenwegen et al. (2009).
+
+    Starting from the greedy plan, every iteration removes a run of consecutive
+    stops from each day ("shake"), re-optimises the visiting order of what is left
+    and refills the days by greedy insertion. A plan that is not worse replaces
+    the current one; the best plan seen is returned.
+    """
+    rng = np.random.default_rng(seed)
+    args = (stops, travel, n_days, day_start, day_end, depot)
+    best = current = greedy_plan(*args)
+    best_obj = current_obj = _objective(best, stops, travel, depot)
+    deadline = time.perf_counter() + time_limit_s
+    length, stale = 1, 0
+    while time.perf_counter() < deadline:
+        orders = []
+        for d, day in enumerate(current.days):
+            seq = [v.stop for v in day]
+            if seq:
+                start = int(rng.integers(len(seq)))
+                drop = {seq[(start + k) % len(seq)] for k in range(min(length, len(seq)))}
+                seq = [i for i in seq if i not in drop or stops[i].mandatory]
+            if len(seq) > 2:
+                tour = two_opt(travel, seq)
+                if schedule_day(tour, stops, travel, d, day_start, day_end, depot) is not None:
+                    seq = tour
+            orders.append(seq)
+        cand = greedy_plan(*args, initial=orders)
+        obj = _objective(cand, stops, travel, depot)
+        if obj >= current_obj:
+            current, current_obj = cand, obj
+        if obj > best_obj:
+            best, best_obj, length, stale = cand, obj, 1, 0
+        else:
+            stale += 1
+            length = length % max(max((len(d) for d in current.days), default=1), 1) + 1
+            if stale > 60:  # restart from the best plan
+                current, current_obj, stale = best, best_obj, 0
+    return best
+
+
 def ortools_plan(
     stops: list[Stop],
     travel: np.ndarray,
@@ -145,6 +205,9 @@ def ortools_plan(
     day_end: int = 19 * 60,
     depot: int | None = None,
     time_limit_s: float = 2.0,
+    warm_start: bool = True,
+    lns: bool = True,
+    initial: Plan | None = None,
 ) -> Plan:
     """Prize-collecting vehicle routing model: one vehicle per day.
 
@@ -154,7 +217,19 @@ def ortools_plan(
     walking is thus worth under 1 % of the best stop: the model maximises
     collected profit and uses travel time only as a tie-breaker. Time windows are enforced on a time
     dimension that accumulates travel, waiting and visit durations.
+
+    Left to its own first-solution strategy the solver fills the days with the
+    most valuable stops and then stalls: replacing one long visit by two short
+    ones is not a single local-search move, and guided local search penalises
+    arcs, whose cost is negligible next to the profits. Therefore the search
+    starts from a known plan (``initial``, by default the greedy one when
+    ``warm_start`` is set), large-neighbourhood operators are enabled (``lns``),
+    and the starting plan is returned whenever the solver fails to improve on
+    it - the result is never worse than the baseline.
     """
+    baseline = initial
+    if baseline is None and warm_start:
+        baseline = greedy_plan(stops, travel, n_days, day_start, day_end, depot)
     real = [i for i in range(len(stops)) if i != depot]
     if not real:
         return Plan([[] for _ in range(n_days)])
@@ -230,9 +305,29 @@ def ortools_plan(
     params.first_solution_strategy = routing_enums_pb2.FirstSolutionStrategy.PARALLEL_CHEAPEST_INSERTION
     params.local_search_metaheuristic = routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH
     params.time_limit.FromMilliseconds(int(time_limit_s * 1000))
-    solution = routing.SolveWithParameters(params)
+    if lns:
+        on = pywrapcp.BOOL_TRUE
+        ops = params.local_search_operators
+        ops.use_path_lns = on
+        ops.use_inactive_lns = on
+        ops.use_global_cheapest_insertion_path_lns = on
+        ops.use_global_cheapest_insertion_expensive_chain_lns = on
+        ops.use_relocate_and_make_active = on
+        ops.use_exchange_and_make_active = on
+        ops.use_extended_swap_active = on
+
+    solution = None
+    if baseline is not None:
+        node_of = {(node_stop[n], node_day[n]): n for n in range(1, len(node_stop))}
+        routes = [[node_of[v.stop, d] for v in day] for d, day in enumerate(baseline.days)]
+        routing.CloseModelWithParameters(params)
+        initial = routing.ReadAssignmentFromRoutes(routes, True)
+        if initial is not None:
+            solution = routing.SolveFromAssignmentWithParameters(initial, params)
     if solution is None:
-        return greedy_plan(stops, travel, n_days, day_start, day_end, depot)
+        solution = routing.SolveWithParameters(params)
+    if solution is None:
+        return baseline or greedy_plan(stops, travel, n_days, day_start, day_end, depot)
 
     days: list[list[Visit]] = []
     for d in range(n_days):
@@ -246,7 +341,62 @@ def ortools_plan(
         days.append(sched if sched is not None else [])
     plan = Plan(days)
     plan.skipped = sorted(set(real) - set(plan.visited))
+    if baseline is not None and _objective(baseline, stops, travel, depot) > _objective(
+        plan, stops, travel, depot
+    ):
+        return baseline
     return plan
+
+
+def hybrid_plan(
+    stops: list[Stop],
+    travel: np.ndarray,
+    n_days: int,
+    day_start: int = 9 * 60,
+    day_end: int = 19 * 60,
+    depot: int | None = None,
+    time_limit_s: float = 1.5,
+) -> Plan:
+    """The planner used by the service: iterated local search, then OR-Tools
+    started from its result. Each stage can only keep or improve the plan."""
+    args = (stops, travel, n_days, day_start, day_end, depot)
+    plan = ils_plan(*args, time_limit_s=time_limit_s / 2)
+    return ortools_plan(*args, time_limit_s=time_limit_s / 2, initial=plan)
+
+
+def profit_upper_bound(
+    stops: list[Stop], travel: np.ndarray, n_days: int, day_start: int = 9 * 60, day_end: int = 19 * 60
+) -> float:
+    """Upper bound on collectable profit: fractional knapsack relaxation.
+
+    Each stop costs at least its visit time plus the walk from its nearest
+    neighbour (the first stop of a day is reached for free, hence the credit of
+    one longest "nearest" walk per day); the capacity is the total length of the days.
+    """
+    n = len(stops)
+    if n == 0:
+        return 0.0
+    masked = travel + np.diag(np.full(n, np.inf))
+    nearest = masked.min(axis=0) if n > 1 else np.zeros(1)
+    weight = np.array([s.visit_min for s in stops]) + nearest
+    capacity = n_days * (day_end - day_start) + n_days * float(nearest.max())
+    profit = np.array([s.profit for s in stops])
+    total = 0.0
+    for i in np.argsort(-profit / np.maximum(weight, 1e-9)):
+        if all(w == [] for w in stops[i].windows):
+            continue
+        take = min(1.0, capacity / weight[i]) if weight[i] > 0 else 1.0
+        total += take * profit[i]
+        capacity -= take * weight[i]
+        if capacity <= 0:
+            break
+    return float(total)
+
+
+def _objective(plan: Plan, stops: list[Stop], travel: np.ndarray, depot: int | None) -> tuple:
+    """What the planners maximise: mandatory stops, then profit, then little walking."""
+    mandatory = sum(stops[i].mandatory for i in plan.visited)
+    return mandatory, round(plan.profit(stops), 9), -plan.travel_min(travel, depot)
 
 
 def simulate_day(
@@ -268,7 +418,7 @@ def simulate_day(
     out: list[tuple[Visit, str | None]] = []
     clock, prev = day_start, depot
     for i in order:
-        arrive = clock + (int(round(travel[prev, i])) if prev is not None else 0)
+        arrive = clock + (round(travel[prev, i]) if prev is not None else 0)
         windows = stops[i].windows[day]
         issue: str | None = None
         start = arrive
