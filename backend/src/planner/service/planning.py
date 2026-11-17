@@ -196,7 +196,7 @@ async def build_plan(session: AsyncSession, req: PlanRequest, lang: str = "uk") 
         if not day_orders:
             # the solvers are CPU-bound: a worker thread keeps the event loop free for other requests
             plan = await asyncio.to_thread(
-                hybrid_plan, stops, travel_min, req.days, day_start, day_end, depot, time_limit_s=1.5
+                hybrid_plan, stops, travel_min, req.days, day_start, day_end, depot, time_limit_s=1.0
             )
             day_orders = [[v.stop for v in day] for day in plan.days]
             unscheduled = [i for i in plan.skipped if i in set(user_nodes)]

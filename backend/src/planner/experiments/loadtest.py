@@ -6,6 +6,11 @@ bootstrap confidence interval of the mean.
 
 Run (API must be up, cities imported):
 ``uv run python -m planner.experiments.loadtest --base http://127.0.0.1:8010``
+
+``--pause`` spaces out the requests that make the service call the public routing
+server. For the service's own computation time start the API with routing switched
+off (``PLANNER_OSRM_URL=http://127.0.0.1:9``) and pass ``--pause 0``: walking legs
+come from the cache or the straight-line estimate and no external call is made.
 """
 
 from __future__ import annotations
@@ -20,8 +25,6 @@ import pandas as pd
 
 from ..data.paths import RESULTS_DIR
 from ..metrics import bootstrap_ci
-
-OSRM_PAUSE_S = 2.5  # spacing of requests that make the service call the public routing server
 
 CITIES = {
     "Чернівці": (48.2921, 25.9358),
@@ -108,7 +111,7 @@ def recommend_calls(n: int, rng: np.random.Generator, radius: float = 3.0, limit
     return calls
 
 
-async def main_async(base: str, n: int) -> None:
+async def main_async(base: str, n: int, pause: float) -> None:
     rng = np.random.default_rng(0)
     rows = []
     limits = httpx.Limits(max_connections=128, max_keepalive_connections=128)
@@ -131,8 +134,8 @@ async def main_async(base: str, n: int) -> None:
         body = {"lat": lat, "lon": lon, "radius_km": 3, "limit": 30, "lang": "uk", "method": "top_k"}
         ids = [p["id"] for p in (await client.post("/api/v1/recommendations", json=body)).json()["items"]]
         # The public routing server must not be flooded: every scenario uses a small fixed set of
-        # requests. The first pass may call OSRM (path geometry of a new order); repeated passes are
-        # answered from the cache and measure the server's own work.
+        # requests. A paced warm-up pass fills the caches of walking legs and path geometry; the
+        # measured passes are then answered without external calls and show the server's own work.
         for size in (5, 10, 15):
             for mode in ("keep_order", "optimize"):
                 calls = []
@@ -144,20 +147,30 @@ async def main_async(base: str, n: int) -> None:
                         "start_date": "2026-11-18",
                     }
                     calls.append(("POST", "/api/v1/plans", {"json": plan}))
-                cold = await sequential(
-                    client, f"plan {mode}, {size} stops (first request)", calls[:4], pause_s=OSRM_PAUSE_S
+                await sequential(client, "warm-up", calls, pause_s=pause)
+                rows.append(
+                    await sequential(client, f"plan {mode}, {size} stops", calls * 5, {"stops": size})
                 )
-                await sequential(client, "warm-up", calls[4:], pause_s=OSRM_PAUSE_S)
-                warm = await sequential(client, f"plan {mode}, {size} stops", calls * 5, {"stops": size})
-                rows += [cold, warm]
         multi = []
         for _ in range(10):
             chosen = rng.choice(ids, size=15, replace=False).tolist()
             plan = {"stops": [{"poi_id": i} for i in chosen], "mode": "optimize", "days": 3,
                     "start_date": "2026-11-16", "day_end": "15:00"}  # fmt: skip
             multi.append(("POST", "/api/v1/plans", {"json": plan}))
-        await sequential(client, "warm-up", multi, pause_s=OSRM_PAUSE_S)
+        await sequential(client, "warm-up", multi, pause_s=pause)
         rows.append(await sequential(client, "plan optimize, 15 stops, 3 days (time windows)", multi * 3))
+
+        # Genuinely new orders (random, not seeded): the path geometry is not cached yet, so every
+        # plan includes one round trip to the routing server.
+        fresh_rng = np.random.default_rng()
+        fresh = []
+        for _ in range(10 if pause else 0):
+            chosen = fresh_rng.choice(ids, size=10, replace=False).tolist()
+            plan = {"stops": [{"poi_id": i} for i in chosen], "mode": "optimize", "start_date": "2026-11-18"}
+            fresh.append(("POST", "/api/v1/plans", {"json": plan}))
+        if fresh:
+            name = "plan optimize, 10 stops, new order (with a routing request)"
+            rows.append(await sequential(client, name, fresh, pause_s=pause))
 
         for level in (1, 4, 16, 64):
             rows.append(
@@ -175,8 +188,9 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--base", default="http://127.0.0.1:8010")
     parser.add_argument("-n", type=int, default=200)
+    parser.add_argument("--pause", type=float, default=2.5)
     args = parser.parse_args()
-    asyncio.run(main_async(args.base, args.n))
+    asyncio.run(main_async(args.base, args.n, args.pause))
 
 
 if __name__ == "__main__":
