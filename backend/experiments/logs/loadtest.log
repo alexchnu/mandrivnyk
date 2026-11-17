@@ -1,0 +1,16 @@
+                                      scenario   n  errors  mean_ms  ci_lo_ms  ci_hi_ms  p50_ms  p95_ms  max_ms  stops  routed_share  users  rps
+                  recommendations, radius 3 km 200       0     38.7      33.9      44.0    22.4   141.6   154.9    NaN           NaN    NaN  NaN
+                  recommendations, radius 1 km 200       0     16.3      14.2      18.8    11.9    23.4   115.6    NaN           NaN    NaN  NaN
+                  recommendations, radius 5 km 100       0     50.8      41.7      59.5    25.7   155.5   177.9    NaN           NaN    NaN  NaN
+                                        health 200       0      3.1       3.1       3.2     2.9     4.4     5.0    NaN           NaN    NaN  NaN
+                      plan keep_order, 5 stops  60       0      7.1       6.9       7.2     7.0     8.3     9.0    5.0           1.0    NaN  NaN
+                        plan optimize, 5 stops  60       0      7.4       7.3       7.6     7.3     8.7     9.3    5.0           1.0    NaN  NaN
+                     plan keep_order, 10 stops  60       0      7.1       6.9       7.3     6.9     8.7     9.2   10.0           0.8    NaN  NaN
+                       plan optimize, 10 stops  60       0     20.6      20.3      21.0    20.4    22.6    27.1   10.0           0.8    NaN  NaN
+                     plan keep_order, 15 stops  60       0      9.7       9.2      10.2     9.3    13.3    14.0   15.0           0.7    NaN  NaN
+                       plan optimize, 15 stops  60       0   1353.6    1252.4    1438.1  1521.7  1524.6  1525.4   15.0           0.6    NaN  NaN
+plan optimize, 15 stops, 3 days (time windows)  30       0   1020.0    1019.3    1020.8  1020.1  1023.1  1024.5    NaN           0.8    NaN  NaN
+                    recommendations under load 400       0     39.6      35.8      43.7    22.7   142.3   173.4    NaN           NaN    1.0 25.2
+                    recommendations under load 400       0    149.1     143.2     154.3   126.2   218.4   318.9    NaN           NaN    4.0 26.8
+                    recommendations under load 400       0    612.3     603.7     620.5   611.1   776.2   880.3    NaN           NaN   16.0 25.7
+                    recommendations under load 400       0   2422.0    2284.3    2564.1  2395.1  5327.9  9692.3    NaN           NaN   64.0 24.5

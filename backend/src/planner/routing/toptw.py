@@ -355,7 +355,7 @@ def hybrid_plan(
     day_start: int = 9 * 60,
     day_end: int = 19 * 60,
     depot: int | None = None,
-    time_limit_s: float = 1.5,
+    time_limit_s: float = 1.0,
 ) -> Plan:
     """The planner used by the service: iterated local search, then OR-Tools
     started from its result. Each stage can only keep or improve the plan."""

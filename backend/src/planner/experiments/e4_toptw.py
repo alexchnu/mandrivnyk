@@ -4,7 +4,7 @@ Instances are built from real data: the most relevant sights of every benchmark
 city (relevance = output of the deployed model), their real opening hours from
 OSM where present, typical visit durations and pedestrian travel times (OSRM).
 
-Run: ``uv run python -m planner.experiments.e4_toptw``
+Run: ``uv run python -m planner.experiments.e4_toptw`` (``--only hybrid_1s`` re-runs one solver)
 """
 
 from __future__ import annotations
@@ -52,7 +52,8 @@ def build_instance(city: str, scored: pd.DataFrame, n: int) -> tuple[list[Stop],
     return stops, minutes, with_hours / len(top)
 
 
-def main() -> None:
+def main(only: list[str] | None = None) -> None:
+    """``only`` re-runs the named solvers and keeps the stored results of the others."""
     scored = pd.read_parquet(PROCESSED_DIR / "e2_loco_scores.parquet")
     rows = []
     for city in MAIN_CITIES:
@@ -73,8 +74,11 @@ def main() -> None:
                     "ortools_warm_1s": partial(ortools_plan, *args, time_limit_s=1.0),
                     "ils_1s": partial(ils_plan, *args, time_limit_s=1.0),
                     "ils_5s": partial(ils_plan, *args, time_limit_s=5.0),
+                    "hybrid_1s": partial(hybrid_plan, *args, time_limit_s=1.0),  # the service setting
                     "hybrid_1.5s": partial(hybrid_plan, *args, time_limit_s=1.5),
                 }
+                if only:
+                    solvers = {k: v for k, v in solvers.items() if k in only}
                 bound = profit_upper_bound(day_stops, minutes, days, DAY_START, DAY_END)
                 for name, solve in solvers.items():
                     t0 = time.perf_counter()
@@ -87,6 +91,10 @@ def main() -> None:
                     })  # fmt: skip
             print(city, n, "done")
     df = pd.DataFrame(rows)
+    if only:
+        old = pd.read_csv(RESULTS_DIR / "e4_toptw.csv")
+        df = pd.concat([old[~old["solver"].isin(only)], df], ignore_index=True)
+        df = df.sort_values(["city", "n", "days"], kind="stable").reset_index(drop=True)
     df.to_csv(RESULTS_DIR / "e4_toptw.csv", index=False)
     wide = df.pivot_table(index=["city", "n", "days"], columns="solver", values="profit")
     others = [c for c in wide.columns if c != "greedy"]
@@ -113,4 +121,8 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--only", nargs="*", help="solvers to re-run; the rest is taken from e4_toptw.csv")
+    main(parser.parse_args().only)
