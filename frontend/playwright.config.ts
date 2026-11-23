@@ -15,7 +15,10 @@ export default defineConfig({
     locale: 'uk-UA',
     timezoneId: 'Europe/Kyiv',
     launchOptions: {
-      args: ['--lang=uk-UA'], // native date and time inputs follow the browser language
+      // native date and time inputs follow the browser language; the full Chromium (PW_CHROMIUM)
+      // takes it from the environment, the headless shell ignores it
+      args: ['--lang=uk-UA'],
+      env: { ...process.env, LANG: 'uk_UA.UTF-8', LANGUAGE: 'uk' },
       ...(process.env.PW_CHROMIUM ? { executablePath: process.env.PW_CHROMIUM } : {}),
     },
     screenshot: 'only-on-failure',
