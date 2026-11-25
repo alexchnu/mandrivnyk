@@ -32,14 +32,14 @@ plt.rcParams.update({
 })  # fmt: skip
 
 SCORER_NAME = {
-    "manual": "Ручні ваги (курсова)", "n_tags": "Кількість тегів", "sitelinks": "Sitelinks Wikidata",
+    "manual": "Ручні ваги тегів", "n_tags": "Кількість тегів", "sitelinks": "Sitelinks Wikidata",
     "pageviews": "Перегляди Wikipedia", "lgbm:osm": "Модель: OSM", "logreg:osm": "Лог. регресія: OSM",
     "lgbm:osm+sitelinks": "Модель: OSM + sitelinks", "lgbm:osm+wiki": "Модель: OSM + sitelinks + перегляди",
     "logreg:osm+wiki": "Лог. регресія: OSM + Wiki",
 }  # fmt: skip
 SELECTOR_NAME = {
     "top_k": "Без диверсифікації",
-    "round_robin": "Round-robin (курсова)",
+    "round_robin": "Round-robin",
     "mmr": "MMR",
     "xquad": "xQuAD",
 }
@@ -272,7 +272,7 @@ def fig_e3() -> None:
     )
     old = summary[summary.config == "manual|round_robin"].iloc[0]
     ax.annotate(
-        "Алгоритм курсової",
+        "Ручні ваги + round-robin",
         (old.ild, old.ndcg),
         xytext=(-60, 22),
         textcoords="offset points",
@@ -320,7 +320,7 @@ def fig_e3() -> None:
 
     inter = pd.read_csv(RESULTS_DIR / "e3_interactive_summary.csv").set_index("config")
     rows = [
-        ("distance_only", "Лише відстань", MUTED), ("manual|round_robin", "Алгоритм курсової", ORANGE),
+        ("distance_only", "Лише відстань", MUTED), ("manual|round_robin", "Ручні ваги + round-robin", ORANGE),
         ("lgbm:osm|top_k", "Модель: OSM", AQUA), ("lgbm:osm+sitelinks|round_robin", "Модель + round-robin", BLUE),
         ("proposed", "Обрана конфігурація", BLUE), ("lgbm:osm+sitelinks|top_k|w=0.15", "Модель без диверсифікації", BLUE),
     ]  # fmt: skip
